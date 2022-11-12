@@ -573,7 +573,17 @@ client.on("interactionCreate", async (interaction) => {
           if (specified_file) {
             await interaction.channel?.send(`https://raws.reaperscans.com/${specified_file}`)
           }
-        } catch (error) { }
+        } catch (error) {
+          await interaction.channel?.send('An error happened, the bot will try to RP the chapter again.')
+          const specified_file = await getChapter(
+            kakao_series_id,
+            chapter_number,
+            toUrl(kakao_title)
+          );
+          if (specified_file) {
+            await interaction.channel?.send(`https://raws.reaperscans.com/${specified_file}`)
+          }
+        }
         await interaction.editReply("RP done.");
         return;
       case "process":
