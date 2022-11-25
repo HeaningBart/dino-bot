@@ -552,10 +552,10 @@ client.on("interactionCreate", async (interaction) => {
           await interaction.editReply(`You're not allowed to use this command.`);
           return;
         }
-      // const removed_id = interaction.options.getString('kakaoid')!;
-      // await prisma.series.deleteMany({ where: { kakaoId: removed_id } });
-      // await interaction.editReply('Series removed.');
-      //return;
+        const removed_id = interaction.options.getString('kakaoid')!;
+        await prisma.series.deleteMany({ where: { kakaoId: removed_id } });
+        await interaction.editReply('Series removed.');
+        return;
       case "getchapter":
         if (!allowedUsers.includes(user)) {
           await interaction.editReply(`You're not allowed to use this command.`);
@@ -701,6 +701,13 @@ client
   .then((data) => console.log(data))
   .catch((error) => console.log(error));
 
+
+// (async () => {
+//   const browser = await JPStart();
+//   await JPLogin(browser);
+//   await JPLatestChapter('81737', 'dp', browser);
+
+// })();
 
 
 
