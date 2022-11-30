@@ -228,7 +228,7 @@ const rr_job = schedule.scheduleJob('10 10 * * 2', async function () {
 
 
 
-const wednesday_job = schedule.scheduleJob('01 8 * * 3', async function () {
+const wednesday_job = schedule.scheduleJob('01 9 * * 3', async function () {
   try {
     const daily_series = await prisma.series.findMany({ where: { cron: 'wednesday', weekly: true }, orderBy: { priority: 'desc' } });
     for (let i = 0; i <= daily_series.length - 1; i++) {
@@ -652,7 +652,6 @@ client.on("interactionCreate", async (interaction) => {
         await JPLogin(jp_browser);
         const jp_seriesid = interaction.options.getString("seriesid")!;
         const series_name = toUrl(interaction.options.getString("seriesname")!);
-
 
         try {
           const jp_file_url = await JPLatestChapter(jp_seriesid, series_name, jp_browser)
