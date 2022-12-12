@@ -27,8 +27,9 @@ import {
   getLatestChapter as JPLatestChapter,
   logIn as JPLogin,
   start as JPStart,
+  getListOfChapters as JPList,
   getListOfChapters,
-  getSpecificChapter,
+  getSpecificChapter as JPSpecific,
 } from "./rawhandler/japan";
 
 const app: Express = express();
@@ -100,7 +101,7 @@ type SeriesItem = {
 
 
 
-const monday_job = schedule.scheduleJob('01 8 * * 1', async function () {
+const monday_job = schedule.scheduleJob('35 12 * * 1', async function () {
   try {
     const daily_series = await prisma.series.findMany({ where: { cron: 'monday', weekly: true }, orderBy: { priority: 'desc' } });
     for (let i = 0; i <= daily_series.length - 1; i++) {
@@ -314,7 +315,7 @@ const thursday_job = schedule.scheduleJob('01 8 * * 4', async function () {
   }
 })
 
-const friday_job = schedule.scheduleJob('01 8 * * 5', async function () {
+const friday_job = schedule.scheduleJob('45 12 * * 1', async function () {
   try {
     const daily_series = await prisma.series.findMany({ where: { cron: 'friday', weekly: true }, orderBy: { priority: 'desc' } });
     for (let i = 0; i <= daily_series.length - 1; i++) {
@@ -357,7 +358,7 @@ const friday_job = schedule.scheduleJob('01 8 * * 5', async function () {
   }
 })
 
-const saturday_job = schedule.scheduleJob('01 8 * * 6', async function () {
+const saturday_job = schedule.scheduleJob('55 12 * * 1', async function () {
   try {
     const daily_series = await prisma.series.findMany({ where: { cron: 'saturday', weekly: true }, orderBy: { priority: 'desc' } });
     for (let i = 0; i <= daily_series.length - 1; i++) {
@@ -400,7 +401,7 @@ const saturday_job = schedule.scheduleJob('01 8 * * 6', async function () {
   }
 })
 
-const sunday_job = schedule.scheduleJob('01 8 * * 7', async function () {
+const sunday_job = schedule.scheduleJob('05 13 * * 1', async function () {
   try {
     const daily_series = await prisma.series.findMany({ where: { cron: 'sunday', weekly: true }, orderBy: { priority: 'desc' } });
     for (let i = 0; i <= daily_series.length - 1; i++) {
@@ -701,12 +702,7 @@ client
   .catch((error) => console.log(error));
 
 
-// (async () => {
-//   const browser = await JPStart();
-//   await JPLogin(browser);
-//   await JPLatestChapter('81737', 'dp', browser);
 
-// })();
 
 
 

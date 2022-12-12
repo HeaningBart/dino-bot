@@ -23,7 +23,6 @@ export async function start() {
       "--disable-dev-shm-usage",
       `--proxy-server=https://jp547.nordvpn.com:89`,
     ],
-    headless: false
   });
 
   return browser;
@@ -239,12 +238,16 @@ export async function getSpecificChapter(
 
   await page.click(`a[data-episode_id="${episode_id}"]`);
 
-  await page.waitForTimeout(5000);
+  try {
+    await page.waitForNavigation({ timeout: 30000 })
+  } catch (error) {
+
+  }
 
   try {
     await page.click("div.jconfirm-buttons > button", {
-      delay: 5000,
-      clickCount: 20,
+      clickCount: 2000,
+      delay: 1000
     });
     await page.evaluate(() => {
       const button = document.querySelector<HTMLButtonElement>('div.jconfirm-buttons > button');
@@ -255,14 +258,14 @@ export async function getSpecificChapter(
   } catch (error) {
     console.log(error);
   }
-
-  await page.waitForTimeout(15000);
-
   const chapter_data = await page.evaluate(() => {
     //@ts-ignore
     const data = _pdata_;
     return data;
   });
+
+
+  console.log('this is pdata' + chapter_data);
 
   var img_data = chapter_data.img.map((item: any) => item.path);
   const chapter_title = chapter_data.title.replaceAll(/\D/g, "") + `-${chapter_data.episode_id}`;
@@ -279,6 +282,8 @@ export async function getSpecificChapter(
         url: "https://" + item,
         directory: `./${directory}`,
         fileName: `${index}.jpg`,
+        timeout: 15000,
+        maxAttempts: 5,
       })
   );
 
@@ -286,6 +291,7 @@ export async function getSpecificChapter(
     const x = new URLSearchParams(item);
     return x.get("expires");
   });
+
 
   const functio = (checksum: string, expires: string) => {
     const key = expires;
@@ -303,7 +309,7 @@ export async function getSpecificChapter(
   }
 
   const seeds_array = img_data.map((item: any, index: any) => {
-    const seed = functio(get_checksum(item), `${expires_array[index]}`);
+    const seed = functio(get_checksum(item), expires_array[index]);
     return seed;
   });
 
@@ -319,29 +325,32 @@ export async function getSpecificChapter(
       await exec(
         `pycasso ${directory}/${i}.jpg ${directory}/output/${i} scramble -n 50 50 -s ${seeds_array[i]} -f jpeg`
       );
-    } catch (error) { }
+    } catch (error) {
+    }
   }
 
   try {
     await fs.mkdir(waifu_directory, { recursive: true });
-    await exec(
-      `python3.9 src/rawhandler/SmartStitchConsole.py -i "${directory}" -H 12000 -cw 800 -w 2 -t ".jpeg" -s 90`
-    );
-    console.log("All images have been stitched.");
+    // await exec(
+    //   `python3.9 src/rawhandler/SmartStitchConsole.py -i "${directory}/output" -H 12000 -cw 800 -w 2 -t ".jpeg" -s 90`
+    // );
+    // console.log("All images have been stitched.");
 
-    await exec(
-      `./waifu2x-ncnn-vulkan -n 3 -s 1 -o ../../${waifu_directory}/ -i ../../${directory}/Stitched -f jpg -j 2:2:2`,
-      { cwd: waifu }
-    );
-    console.log("All images have been through waifu-2x-caffe.");
+    // await exec(
+    //   `./waifu2x-ncnn-vulkan -n 3 -s 1 -o ../../${waifu_directory}/ -i ../../${directory}/output/Stitched -f jpg -j 2:2:2`,
+    //   { cwd: waifu }
+    // );
+    // console.log("All images have been through waifu-2x-caffe.");
 
-    await exec(`7z a public/${directory}.7z  ./${waifu_directory}/*`);
+    // await exec(`7z a public/${directory}.7z  ./${waifu_directory}/*`);
 
-    fs.rm(`./${directory}`, { recursive: true });
-    fs.rm(`./${waifu_directory}`, { recursive: true });
+    // fs.rm(`./${directory}`, { recursive: true });
+    // fs.rm(`./${waifu_directory}`, { recursive: true });
 
     console.log("Temp directories are being removed.");
 
     return `${directory}.7z`;
-  } catch (error) { }
+  } catch (error) {
+    console.log(error)
+  }
 }

@@ -15,7 +15,7 @@ import Handler from "../handlers";
 import downloader from "nodejs-file-downloader";
 import Redis from 'ioredis';
 
-const redis = new Redis();
+const redis = new Redis({ reconnectOnError: () => false });
 
 
 
