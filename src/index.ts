@@ -272,7 +272,7 @@ const wednesday_job = schedule.scheduleJob('01 9 * * 3', async function () {
   }
 })
 
-const thursday_job = schedule.scheduleJob('01 8 * * 4', async function () {
+const thursday_job = schedule.scheduleJob('01 9 * * 4', async function () {
   try {
     const daily_series = await prisma.series.findMany({ where: { cron: 'thursday', weekly: true }, orderBy: { priority: 'desc' } });
     for (let i = 0; i <= daily_series.length - 1; i++) {
@@ -700,7 +700,6 @@ client
   .login(token)
   .then((data) => console.log(data))
   .catch((error) => console.log(error));
-
 
 
 
