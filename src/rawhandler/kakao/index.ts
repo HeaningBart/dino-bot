@@ -1,7 +1,16 @@
 import { Browser } from "puppeteer";
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
+import RecaptchaPlugin from 'puppeteer-extra-plugin-recaptcha'
 puppeteer.use(StealthPlugin());
+puppeteer.use(
+  RecaptchaPlugin({
+    provider: { id: '2captcha', token: '0f072094b870ccff32282446d3a3cc5e' },
+    visualFeedback: true, // colorize reCAPTCHAs (violet = detected, green = solved)
+    throwOnError: true
+
+  })
+)
 const { email, password } = require("../../../config.json");
 
 export async function start() {
@@ -39,6 +48,10 @@ export async function logIn(browser: Browser) {
     await newPage.type('input[type="text"]', email);
     await newPage.type('input[name="password"]', password);
     await newPage.click('input[type="checkbox"]');
+    await newPage.solveRecaptchas();
+    await newPage.keyboard.press("Enter");
+    await newPage.waitForTimeout(5000);
+    await newPage.solveRecaptchas();
     await newPage.keyboard.press("Enter");
   }
 
@@ -68,4 +81,3 @@ export async function buyTicket(browser: Browser, series_id: string) {
   await new_page.waitForNetworkIdle();
   await new_page.close();
 }
-
