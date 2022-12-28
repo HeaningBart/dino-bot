@@ -23,7 +23,6 @@ export async function start() {
       "--disable-dev-shm-usage",
       `--proxy-server=https://jp547.nordvpn.com:89`,
     ],
-    headless: false
   });
 
   return browser;
@@ -55,6 +54,10 @@ export async function logIn(browser: Browser) {
   await page.waitForNavigation({ timeout: 30000 })
   await page.close();
 }
+
+
+
+
 
 export async function getLatestChapter(
   series_id: string | number,
@@ -161,7 +164,7 @@ export async function getLatestChapter(
   for (let i = 0; i <= img_data.length - 1; i++) {
     try {
       await exec(
-        `pycasso ${directory}/${i}.jpg ${directory}/output/${i} scramble -n 50 50 -s ${seeds_array[i]} -f jpeg`
+        `pycasso ${directory}/${i}.jpg ${directory}/output/${i + 1} scramble -n 50 50 -s ${seeds_array[i]} -f jpeg`
       );
     } catch (error) {
     }
@@ -324,7 +327,7 @@ export async function getSpecificChapter(
   for (let i = 0; i <= img_data.length - 1; i++) {
     try {
       await exec(
-        `pycasso ${directory}/${i}.jpg ${directory}/output/${i} scramble -n 50 50 -s ${seeds_array[i]} -f jpeg`
+        `pycasso ${directory}/${i}.jpg ${directory}/output/${i + 1} scramble -n 50 50 -s ${seeds_array[i]} -f jpeg`
       );
     } catch (error) {
     }
