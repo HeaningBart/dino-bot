@@ -573,7 +573,7 @@ async function getSpecificChapter(
       const browser = await start();
       cookies = await logIn(browser);
       await browser.close();
-      await redis.set('kakao_cookies', cookies, 'EX', 127600);
+      await redis.set('kakao_cookies', cookies, 'EX', 259200);
     }
 
     const isValid = await checkCookiesValidity(cookies);
@@ -582,7 +582,7 @@ async function getSpecificChapter(
       const browser = await start();
       cookies = await logIn(browser);
       await browser.close();
-      await redis.set('kakao_cookies', cookies, 'EX', 127600);
+      await redis.set('kakao_cookies', cookies, 'EX', 259200);
     }
 
     console.log(cookies);
@@ -661,7 +661,7 @@ async function getLatestChapter(
       const browser = await start();
       cookies = await logIn(browser);
       await browser.close();
-      await redis.set('kakao_cookies', cookies, 'EX', 127600);
+      await redis.set('kakao_cookies', cookies, 'EX', 259200);
     }
 
     const isValid = await checkCookiesValidity(cookies);
@@ -670,7 +670,7 @@ async function getLatestChapter(
       const browser = await start();
       cookies = await logIn(browser);
       await browser.close();
-      await redis.set('kakao_cookies', cookies, 'EX', 127600);
+      await redis.set('kakao_cookies', cookies, 'EX', 259200);
     }
 
     console.log(cookies);
