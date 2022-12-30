@@ -45,11 +45,15 @@ export async function logIn(browser: Browser) {
     await newPage.type('input[type="text"]', email);
     await newPage.type('input[name="password"]', password);
     await newPage.click('input[type="checkbox"]');
-    await newPage.solveRecaptchas();
-    await newPage.keyboard.press("Enter");
-    await newPage.waitForTimeout(5000);
-    await newPage.solveRecaptchas();
-    await newPage.keyboard.press("Enter");
+    try {
+      await newPage.solveRecaptchas();
+      await newPage.keyboard.press("Enter");
+      await newPage.waitForTimeout(5000);
+      await newPage.solveRecaptchas();
+      await newPage.keyboard.press("Enter");
+    } catch (e) {
+
+    }
   }
 
   await page.waitForNavigation({ timeout: 300000 })
