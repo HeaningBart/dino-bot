@@ -7,8 +7,6 @@ puppeteer.use(
   RecaptchaPlugin({
     provider: { id: '2captcha', token: '0f072094b870ccff32282446d3a3cc5e' },
     visualFeedback: true, // colorize reCAPTCHAs (violet = detected, green = solved)
-    throwOnError: true
-
   })
 )
 const { email, password } = require("../../../config.json");
@@ -80,3 +78,4 @@ export async function buyTicket(browser: Browser, series_id: string) {
   await new_page.waitForNetworkIdle();
   await new_page.close();
 }
+
