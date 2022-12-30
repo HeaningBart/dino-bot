@@ -696,10 +696,10 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 
-// client
-//   .login(token)
-//   .then((data) => console.log(data))
-//   .catch((error) => console.log(error));
+client
+  .login(token)
+  .then((data) => console.log(data))
+  .catch((error) => console.log(error));
 
 
 
