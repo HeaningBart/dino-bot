@@ -229,7 +229,7 @@ const rr_job = schedule.scheduleJob('10 10 * * 2', async function () {
 
 
 
-const wednesday_job = schedule.scheduleJob('06 8 * * 3', async function () {
+const wednesday_job = schedule.scheduleJob('09 8 * * 3', async function () {
   try {
     const daily_series = await prisma.series.findMany({ where: { cron: 'wednesday', weekly: true }, orderBy: { priority: 'desc' } });
     for (let i = 0; i <= daily_series.length - 1; i++) {
@@ -696,16 +696,10 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 
-// client
-//   .login(token)
-//   .then((data) => console.log(data))
-//   .catch((error) => console.log(error));
-
-(async () => {
-  const browser = await JPStart();
-  await JPLogin(browser);
-  await JPLatestChapter('81737', 'dp', browser)
-})()
+client
+  .login(token)
+  .then((data) => console.log(data))
+  .catch((error) => console.log(error));
 
 
 
