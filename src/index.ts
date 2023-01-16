@@ -101,7 +101,7 @@ type SeriesItem = {
 
 
 
-const monday_job = schedule.scheduleJob('01 8 * * 1', async function () {
+const monday_job = schedule.scheduleJob('01 9 * * 1', async function () {
   try {
     const daily_series = await prisma.series.findMany({ where: { cron: 'monday', weekly: true }, orderBy: { priority: 'desc' } });
     for (let i = 0; i <= daily_series.length - 1; i++) {
@@ -702,6 +702,12 @@ client
   .catch((error) => console.log(error));
 
 
+// (async () => {
+//   const browser = await JPStart();
+//   await JPLogin(browser);
+//   await JPLatestChapter('81737', 'dp', browser);
+
+// })()
 
 
 
