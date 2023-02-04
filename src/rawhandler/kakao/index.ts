@@ -1,14 +1,14 @@
 import { Browser } from "puppeteer";
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
-import RecaptchaPlugin from 'puppeteer-extra-plugin-recaptcha'
+import RecaptchaPlugin from "puppeteer-extra-plugin-recaptcha";
 puppeteer.use(StealthPlugin());
 puppeteer.use(
   RecaptchaPlugin({
-    provider: { id: '2captcha', token: '0f072094b870ccff32282446d3a3cc5e' },
+    provider: { id: "2captcha", token: "0f072094b870ccff32282446d3a3cc5e" },
     visualFeedback: true, // colorize reCAPTCHAs (violet = detected, green = solved)
   })
-)
+);
 const { email, password } = require("../../../config.json");
 
 export async function start() {
@@ -25,16 +25,25 @@ export async function logIn(browser: Browser) {
   console.log("eu estou aqui");
   try {
     await page.goto("https://page.kakao.com/", { timeout: 15000 });
-  } catch (error) { }
-  await page.setCookie({ name: '_kpdid', value: "a6f58d9219f044d4985f131c72b0085e", domain: ".kakao.com", httpOnly: true, path: '/' })
-  await page.click('img.cursor-pointer.pr-16pxr',
-    {
-      clickCount: 2000,
-    });
-  const newTarget = await browser.waitForTarget(
-    (target) => target.opener() === pageTarget
-  );
-  const newPage = await newTarget.page()
+  } catch (error) {}
+  await page.setCookie({
+    name: "_kpdid",
+    value: "a6f58d9219f044d4985f131c72b0085e",
+    domain: ".kakao.com",
+    httpOnly: true,
+    path: "/",
+  });
+  await page.click("div.pr-16pxr", {
+    clickCount: 2000,
+  });
+
+  await page.waitForNavigation();
+
+  // const newTarget = await browser.waitForTarget(
+  //   (target) => target.opener() === pageTarget
+  // );
+
+  const newPage = page;
 
   if (newPage) {
     await newPage.waitForTimeout(5000);
@@ -46,27 +55,27 @@ export async function logIn(browser: Browser) {
     await newPage.type('input[name="password"]', password);
     await newPage.click('input[type="checkbox"]');
     try {
-      await newPage.solveRecaptchas();
+      try {
+        await newPage.solveRecaptchas();
+      } catch (error) {}
       await newPage.keyboard.press("Enter");
       await newPage.waitForTimeout(5000);
-      await newPage.solveRecaptchas();
+      try {
+        await newPage.solveRecaptchas();
+      } catch (error) {}
       await newPage.keyboard.press("Enter");
-    } catch (e) {
-
-    }
+    } catch (e) {}
   }
 
-  await page.waitForNavigation({ timeout: 300000 })
+  await page.waitForNavigation({ timeout: 300000 });
 
   const cookies = await page.cookies();
   const new_cookies = cookies.map((item) => `${item.name}=${item.value};`);
   const filtered_cookies = new_cookies.join(" ");
 
-  console.log(filtered_cookies)
+  console.log(filtered_cookies);
 
   return filtered_cookies;
-
-
 }
 
 export async function buyTicket(browser: Browser, series_id: string) {
@@ -82,4 +91,3 @@ export async function buyTicket(browser: Browser, series_id: string) {
   await new_page.waitForNetworkIdle();
   await new_page.close();
 }
-

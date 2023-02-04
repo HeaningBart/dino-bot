@@ -1,30 +1,24 @@
-import { Browser } from "puppeteer";
 import puppeteer from "puppeteer-extra";
 import download from "download";
 import util from "util";
 const exec = util.promisify(require("child_process").exec);
 import fs from "fs/promises";
 import path from "path";
-const { server_username, server_address } = require("../../config.json");
 import axios from "axios";
-// Relative paths
 export const waifu = path.resolve(__dirname);
 import { logIn, start } from "./kakao";
 import randomstring from "randomstring";
-import Handler from "../handlers";
+import { redis } from "../redis";
 import downloader from "nodejs-file-downloader";
-import Redis from 'ioredis';
-
-const redis = new Redis({ reconnectOnError: () => false });
-
-
-
+import { getUrl, uploadFile } from "../b2";
+const { waifu: use_waifu } = require("../../config.json");
 
 async function handleChapter(
   images_array: string[],
   number: string,
   title: string,
-  cookies: string
+  cookies: string,
+  use_waifu: boolean = true
 ) {
   try {
     const random = title;
@@ -37,19 +31,21 @@ async function handleChapter(
     console.log(images_array);
 
     try {
-      const img_array = images_array.map((item: any, index: number) => new downloader({
-        url: item,
-        directory: `./${directory}`,
-        fileName: `${index}.jpg`,
-        timeout: 15000,
-        maxAttempts: 5,
-        headers: {
-          Cookie: cookies
-        }
-      }))
+      const img_array = images_array.map(
+        (item: any, index: number) =>
+          new downloader({
+            url: item,
+            directory: `./${directory}`,
+            fileName: `${index}.jpg`,
+            timeout: 15000,
+            maxAttempts: 5,
+            headers: {
+              Cookie: cookies,
+            },
+          })
+      );
 
       await Promise.all(img_array.map((item: any) => item.download()));
-
 
       console.log("All images have been downloaded.");
     } catch (error) {
@@ -61,22 +57,28 @@ async function handleChapter(
     );
     console.log("All images have been stitched.");
 
-    await exec(
-      `./waifu2x-ncnn-vulkan -n 3 -s 1 -o ../../${waifu_directory}/ -i ../../${directory}/Stitched -f jpg -j 2:2:2`,
-      { cwd: waifu }
-    );
-    console.log("All images have been through waifu-2x-caffe.");
+    if (use_waifu) {
+      await exec(
+        `waifu2x-ncnn-vulkan -n 3 -s 1 -o ../../${waifu_directory}/ -i ../../${directory}/Stitched -f jpg -j 2:2:2`,
+        { cwd: waifu }
+      );
+      console.log("All images have been through waifu-2x-caffe.");
+    }
 
     await exec(`7z a public/${chaptername}.7z  ./${waifu_directory}/*`);
 
-    await exec(`scp ./public/${chaptername}.7z ${server_username}@${server_address}:/home/raws/`)
+    const Buffer = await fs.readFile(`./public/${chaptername}.7z`);
+
+    await uploadFile(`${chaptername}.7z`, Buffer);
 
     fs.rm(`./${directory}`, { recursive: true });
     fs.rm(`./${waifu_directory}`, { recursive: true });
+    fs.rm(`./public/${chaptername}.7z`, { recursive: true });
 
     console.log("Temp directories are being removed.");
 
-    return `${chaptername}.7z`;
+    const link = await getUrl(`${chaptername}.7z`);
+    return link;
   } catch (error) {
     console.log(error);
     console.log(
@@ -84,22 +86,6 @@ async function handleChapter(
     );
   }
 }
-
-
-
-type SeriesItem = {
-  id: string;
-  title: string;
-};
-
-
-type kakaoChapter = {
-  id: number;
-  title: string;
-  price: number;
-  video_grade: number;
-  age_grade: number;
-};
 
 type chapter = {
   id: number;
@@ -115,147 +101,73 @@ export async function getChaptersList(
   order: string
 ): Promise<chapter[]> {
   if (order == "asc" || order == "desc") {
-    const response = await axios.post(
-      "https://page.kakao.com/graphql",
-      {
-        "operationName": "contentHomeProductList",
-        "query": "query contentHomeProductList($after: String, $before: String, $first: Int, $last: Int, $seriesId: Long!, $boughtOnly: Boolean, $sortType: String) {\n  contentHomeProductList(\n    seriesId: $seriesId\n    after: $after\n    before: $before\n    first: $first\n    last: $last\n    boughtOnly: $boughtOnly\n    sortType: $sortType\n  ) {\n    totalCount\n    pageInfo {\n      hasNextPage\n      endCursor\n      hasPreviousPage\n      startCursor\n      __typename\n    }\n    selectedSortOption {\n      id\n      name\n      param\n      __typename\n    }\n    sortOptionList {\n      id\n      name\n      param\n      __typename\n    }\n    edges {\n      cursor\n      node {\n        ...SingleListViewItem\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment SingleListViewItem on SingleListViewItem {\n  id\n  type\n  thumbnail\n  showPlayerIcon\n  isCheckMode\n  isChecked\n  scheme\n  row1 {\n    badgeList\n    title\n    __typename\n  }\n  row2\n  row3\n  single {\n    productId\n    ageGrade\n    id\n    isFree\n    thumbnail\n    title\n    slideType\n    operatorProperty {\n      isTextViewer\n      __typename\n    }\n    __typename\n  }\n  isViewed\n  purchaseInfoText\n  eventLog {\n    ...EventLogFragment\n    __typename\n  }\n}\n\nfragment EventLogFragment on EventLog {\n  click {\n    layer1\n    layer2\n    setnum\n    ordnum\n    copy\n    imp_id\n    imp_provider\n    __typename\n  }\n  eventMeta {\n    id\n    name\n    subcategory\n    category\n    series\n    provider\n    series_id\n    type\n    __typename\n  }\n  viewimp_contents {\n    type\n    name\n    id\n    imp_area_ordnum\n    imp_id\n    imp_provider\n    imp_type\n    layer1\n    layer2\n    __typename\n  }\n  customProps {\n    landing_path\n    view_type\n    toros_imp_id\n    toros_file_hash_key\n    toros_event_meta_id\n    content_cnt\n    event_series_id\n    event_ticket_type\n    play_url\n    __typename\n  }\n}\n",
-        "variables": {
-          "seriesId": seriesid,
-          "boughtOnly": false,
-          "sortType": "desc"
-        }
-
-      }
-    );
+    const response = await axios.post("https://page.kakao.com/graphql", {
+      operationName: "contentHomeProductList",
+      query:
+        "query contentHomeProductList($after: String, $before: String, $first: Int, $last: Int, $seriesId: Long!, $boughtOnly: Boolean, $sortType: String) {\n  contentHomeProductList(\n    seriesId: $seriesId\n    after: $after\n    before: $before\n    first: $first\n    last: $last\n    boughtOnly: $boughtOnly\n    sortType: $sortType\n  ) {\n    totalCount\n    pageInfo {\n      hasNextPage\n      endCursor\n      hasPreviousPage\n      startCursor\n      __typename\n    }\n    selectedSortOption {\n      id\n      name\n      param\n      __typename\n    }\n    sortOptionList {\n      id\n      name\n      param\n      __typename\n    }\n    edges {\n      cursor\n      node {\n        ...SingleListViewItem\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment SingleListViewItem on SingleListViewItem {\n  id\n  type\n  thumbnail\n  showPlayerIcon\n  isCheckMode\n  isChecked\n  scheme\n  row1 {\n    badgeList\n    title\n    __typename\n  }\n  row2\n  row3\n  single {\n    productId\n    ageGrade\n    id\n    isFree\n    thumbnail\n    title\n    slideType\n    operatorProperty {\n      isTextViewer\n      __typename\n    }\n    __typename\n  }\n  isViewed\n  purchaseInfoText\n  eventLog {\n    ...EventLogFragment\n    __typename\n  }\n}\n\nfragment EventLogFragment on EventLog {\n  click {\n    layer1\n    layer2\n    setnum\n    ordnum\n    copy\n    imp_id\n    imp_provider\n    __typename\n  }\n  eventMeta {\n    id\n    name\n    subcategory\n    category\n    series\n    provider\n    series_id\n    type\n    __typename\n  }\n  viewimp_contents {\n    type\n    name\n    id\n    imp_area_ordnum\n    imp_id\n    imp_provider\n    imp_type\n    layer1\n    layer2\n    __typename\n  }\n  customProps {\n    landing_path\n    view_type\n    toros_imp_id\n    toros_file_hash_key\n    toros_event_meta_id\n    content_cnt\n    event_series_id\n    event_ticket_type\n    play_url\n    __typename\n  }\n}\n",
+      variables: {
+        seriesId: seriesid,
+        boughtOnly: false,
+        sortType: "desc",
+      },
+    });
     if (response.data.data.contentHomeProductList.edges) {
       const kakao_chapters = response.data.data.contentHomeProductList.edges;
 
-
-      const chapters = kakao_chapters.map((kakao_node: any, index: any) => {
-        const chapter = kakao_node.node.single;
-        if (chapter.slideType === "Comic") {
-          let true_number: any = chapter.title
-            .split(" ")
-            .find((element: string) => element.includes("화"))
-            ?.replaceAll(/\D/g, "");
-          if (true_number) true_number = parseInt(true_number);
-          return {
-            id: chapter.productId,
-            title: chapter.title,
-            free: chapter.isFree,
-            chapter_number: true_number
-              ? true_number
-              : chapter.title.replaceAll(/\D/g, ""),
-            series_id: seriesid,
-            age_15: chapter.ageGrade == "All" ? false : true,
-          };
-        }
-      }).filter((element: any) => element !== undefined);
+      const chapters = kakao_chapters
+        .map((kakao_node: any, index: any) => {
+          const chapter = kakao_node.node.single;
+          if (chapter.slideType === "Comic") {
+            let true_number: any = chapter.title
+              .split(" ")
+              .find((element: string) => element.includes("화"))
+              ?.replaceAll(/\D/g, "");
+            if (true_number) true_number = parseInt(true_number);
+            return {
+              id: chapter.productId,
+              title: chapter.title,
+              free: chapter.isFree,
+              chapter_number: true_number
+                ? true_number
+                : chapter.title.replaceAll(/\D/g, ""),
+              series_id: seriesid,
+              age_15: chapter.ageGrade == "All" ? false : true,
+            };
+          }
+        })
+        .filter((element: any) => element !== undefined);
       return chapters;
     }
   } else return [];
   return [];
 }
 
-export async function processNaver(url: string, channel_name: string) {
+function getDriveDownloadUrl(string: string): string {
+  if (string.startsWith("https://drive.google.com")) {
+    return string.split("/")[5];
+  } else {
+    return string;
+  }
+}
+
+export async function processNaver(
+  url: string,
+  channel_name: string,
+  use_waifu: boolean = true
+) {
   try {
     const directory = randomstring.generate();
     const array_of_variables = url.split("/");
     const filename = array_of_variables[array_of_variables.length - 1];
+
     const downloadd = new downloader({
-      url,
+      url: getDriveDownloadUrl(url),
       directory: `${directory}`,
       fileName: `${filename}`,
     });
-    console.log(url);
+
     if (url.includes("discord")) {
       await downloadd.download();
-      const files = await fs.readdir(`./${directory}`);
-      const name = files[0].split(".")[0] + channel_name;
-      const ext = files[0].split(".")[1];
-      if (ext == "rar") {
-        await exec(`rar e "./${files[0]}"`, { cwd: `./${directory}` });
-        await fs.unlink(`./${directory}/${files[0]}`);
-        await exec(
-          `python3.9 src/rawhandler/SmartStitchConsole.py -i "${directory}" -H 12000 -cw 800 -w 2 -t ".jpeg" -s 90`
-        );
-        await fs.mkdir(`./${directory}/${name}`, { recursive: true });
-        await exec(
-          `./waifu2x-ncnn-vulkan -n 3 -s 1 -o "../../${directory}/${name}" -i "../../${directory}/Stitched" -f jpg`,
-          { cwd: waifu }
-        );
-        await exec(`7z a public/${name}.7z  ./${directory}/${name}/*`);
-        await exec(`scp ./public/${name}.7z ${server_username}@${server_address}:/home/raws/`)
-        console.log("Chapter processment done.");
-        await fs.rm(`./${directory}`, { recursive: true });
-        return `${name}.7z`;
-      } else {
-        await exec(`7z x "./${files[0]}"`, { cwd: `./${directory}` });
-        await fs.unlink(`./${directory}/${files[0]}`);
-        await exec(
-          `python3.9 src/rawhandler/SmartStitchConsole.py -i "${directory}" -H 12000 -cw 800 -w 2 -t ".jpeg" -s 90`
-        );
-        await fs.mkdir(`./${directory}/${name}`, { recursive: true });
-        await exec(
-          `./waifu2x-ncnn-vulkan -n 3 -s 1 -o "../../${directory}/${name}" -i "../../${directory}/Stitched" -f jpg`,
-          { cwd: waifu }
-        );
-        await exec(`7z a public/${name}.7z  ./${directory}/${name}/*`);
-        await exec(`scp ./public/${name}.7z ${server_username}@${server_address}:/home/raws/`)
-        console.log("Chapter processment done.");
-        await fs.rm(`./${directory}`, { recursive: true });
-        return `${name}.7z`;
-      }
-    } else if (url.includes("drive.google")) {
-      const file_id = url
-        .replaceAll("https://drive.google.com/file/d/", "")
-        .replaceAll("/view?usp=sharing", "")
-        .replaceAll("/view?usp=drivesdk", "")
-        .replaceAll("/view", "");
-      const file_url = `https://drive.google.com/uc?export=download&id=${file_id}&confirm=t`;
-      await download(file_url, `./${directory}`);
-      const files = await fs.readdir(`./${directory}`);
-      const name = files[0].split(".")[0] + channel_name;
-      const ext = files[0].split(".")[1];
-      const true_name = Handler.toUrl(name);
-      if (ext == "rar") {
-        await exec(`rar e "./${files[0]}"`, { cwd: `./${directory}` });
-        await fs.unlink(`./${directory}/${files[0]}`);
-        await exec(
-          `python3.9 src/rawhandler/SmartStitchConsole.py -i "${directory}" -H 12000 -cw 800 -w 2 -t ".jpeg" -s 90`
-        );
-        await fs.mkdir(`./${directory}/${name}`, { recursive: true });
-        await exec(
-          `./waifu2x-ncnn-vulkan -n 3 -s 1 -o "../../${directory}/${name}" -i "../../${directory}/Stitched" -f jpg`,
-          { cwd: waifu }
-        );
-        await exec(
-          `7z a public/${true_name}.7z  "./${directory}/${name}/*"`
-        );
-        await exec(`scp ./public/${name}.7z ${server_username}@${server_address}:/home/raws/`)
-        console.log("Chapter processment done.");
-        await fs.rm(`./${directory}`, { recursive: true });
-        return `${true_name}.7z`;
-      } else {
-        await exec(`7z x "./${files[0]}"`, { cwd: `./${directory}` });
-        await fs.unlink(`./${directory}/${files[0]}`);
-        await exec(
-          `python3.9 src/rawhandler/SmartStitchConsole.py -i "${directory}" -H 12000 -cw 800 -w 2 -t ".jpeg" -s 90`
-        );
-        await fs.mkdir(`./${directory}/${name}`, { recursive: true });
-        await exec(
-          `./waifu2x-ncnn-vulkan -n 3 -s 1 -o "../../${directory}/${name}" -i "../../${directory}/Stitched" -f jpg`,
-          { cwd: waifu }
-        );
-        await exec(
-          `7z a public/${true_name}.7z  "./${directory}/${name}/*"`
-        );
-        await exec(`scp ./public/${name}.7z ${server_username}@${server_address}:/home/raws/`)
-        console.log("Chapter processment done.");
-        await fs.rm(`./${directory}`, { recursive: true });
-        return `${true_name}.7z`;
-      }
     } else if (url.includes("mediafire")) {
       console.log("initializing mediafire");
       const browser = await puppeteer.launch({
@@ -270,49 +182,44 @@ export async function processNaver(url: string, channel_name: string) {
           return url.href;
         } else return null;
       });
-      console.log(download_link);
       if (download_link) {
         await download(download_link, `./${directory}`);
-        const files = await fs.readdir(`./${directory}`);
-        const name = files[0].split(".")[0] + channel_name;
-        const ext = files[0].split(".")[1];
-        if (ext == "rar") {
-          await exec(`rar e "./${files[0]}"`, { cwd: `./${directory}` });
-          await fs.unlink(`./${directory}/${files[0]}`);
-          await exec(
-            `python3.9 src/rawhandler/SmartStitchConsole.py -i "${directory}" -H 12000 -cw 800 -w 2 -t ".jpeg" -s 90`
-          );
-          await fs.mkdir(`./${directory}/${name}`, { recursive: true });
-          await exec(
-            `./waifu2x-ncnn-vulkan -n 3 -s 1 -o "../../${directory}/${name}" -i "../../${directory}/Stitched" -f jpg`,
-            { cwd: waifu }
-          );
-          await exec(`7z a public/${name}.7z  ./${directory}/${name}/*`);
-          await exec(`scp ./public/${name}.7z ${server_username}@${server_address}:/home/raws/`)
-          console.log("Chapter processment done.");
-          await fs.rm(`./${directory}`, { recursive: true });
-          return `${name}.7z`;
-        } else {
-          await exec(`7z x "./${files[0]}"`, { cwd: `./${directory}` });
-          await fs.unlink(`./${directory}/${files[0]}`);
-          await exec(
-            `python3.9 src/rawhandler/SmartStitchConsole.py -i "${directory}" -H 12000 -cw 800 -w 2 -t ".jpeg" -s 90`
-          );
-          await fs.mkdir(`./${directory}/${name}`, { recursive: true });
-          await exec(
-            `./waifu2x-ncnn-vulkan -n 3 -s 1 -o "../../${directory}/${name}" -i "../../${directory}/Stitched" -f jpg`,
-            { cwd: waifu }
-          );
-          await exec(`7z a public/${name}.7z  ./${directory}/${name}/*`);
-          await exec(`scp ./public/${name}.7z ${server_username}@${server_address}:/home/raws/`)
-          console.log("Chapter processment done.");
-          await fs.rm(`./${directory}`, { recursive: true });
-          return `${name}.7z`;
-        }
       } else return null;
-    } else {
-      return null;
     }
+
+    await downloadd.download();
+    const files = await fs.readdir(`./${directory}`);
+    const name = files[0].split(".")[0] + channel_name;
+    const ext = files[0].split(".")[1];
+
+    ext === "rar"
+      ? await exec(`rar e "./${files[0]}"`, { cwd: `./${directory}` })
+      : await exec(`7z e "./${files[0]}"`, { cwd: `./${directory}` });
+
+    await exec(
+      `python3.9 src/rawhandler/SmartStitchConsole.py -i "${directory}" -H 12000 -cw 800 -w 2 -t ".jpeg" -s 90`
+    );
+
+    await fs.mkdir(`./${directory}/${name}`, { recursive: true });
+
+    if (use_waifu) {
+      await exec(
+        `waifu2x-ncnn-vulkan -n 3 -s 1 -o "../../${directory}/${name}" -i "../../${directory}/Stitched" -f jpg`,
+        { cwd: waifu }
+      );
+    }
+
+    await exec(`7z a public/${name}.7z  ./${directory}/${name}/*`);
+    const Buffer = await fs.readFile(`./public/${name}.7z`);
+    await uploadFile(`${name}.7z`, Buffer);
+
+    console.log("Chapter processment done.");
+
+    fs.rm(`./public/${name}.7z`, { recursive: true });
+    fs.rm(`./${directory}`, { recursive: true });
+
+    const link = await getUrl(`${name}.7z`);
+    return link;
   } catch (e) {
     console.log(e);
     return null;
@@ -550,11 +457,10 @@ async function getChapterContent(
   };
 }
 
-
 async function checkCookiesValidity(cookies: string) {
   try {
     const device = await getDeviceCookie(cookies);
-    if (typeof device === 'string') return true;
+    if (typeof device === "string") return true;
   } catch (error) {
     return false;
   }
@@ -566,14 +472,13 @@ async function getSpecificChapter(
   title: string | number
 ) {
   try {
-
-    var cookies = await redis.get('kakao_cookies');
+    var cookies = await redis.get("kakao_cookies");
 
     if (!cookies) {
       const browser = await start();
       cookies = await logIn(browser);
       await browser.close();
-      await redis.set('kakao_cookies', cookies, 'EX', 259200);
+      await redis.set("kakao_cookies", cookies, "EX", 259200);
     }
 
     const isValid = await checkCookiesValidity(cookies);
@@ -582,7 +487,7 @@ async function getSpecificChapter(
       const browser = await start();
       cookies = await logIn(browser);
       await browser.close();
-      await redis.set('kakao_cookies', cookies, 'EX', 259200);
+      await redis.set("kakao_cookies", cookies, "EX", 259200);
     }
 
     console.log(cookies);
@@ -603,7 +508,8 @@ async function getSpecificChapter(
           content_chapter.files,
           chapter.chapter_number.toString(),
           title.toString(),
-          cookies
+          cookies,
+          use_waifu
         );
         return chapter_file;
       } catch (error) {
@@ -621,7 +527,7 @@ async function getSpecificChapter(
               await buyAndUseTicket(chapter.id, seriesId, cookies);
             } catch (error) {
               await buyAndUseTicket(chapter.id, seriesId, cookies);
-              console.log(error)
+              console.log(error);
             }
           }
           const content = await getChapterContent(
@@ -634,7 +540,8 @@ async function getSpecificChapter(
               content.files,
               chapter.chapter_number.toString(),
               title.toString(),
-              cookies
+              cookies,
+              use_waifu
             );
             return chapter_file;
           }
@@ -647,21 +554,18 @@ async function getSpecificChapter(
   }
 }
 
-
 async function getLatestChapter(
   seriesId: string | number,
   title: string | number
 ) {
   try {
-
-
-    var cookies = await redis.get('kakao_cookies');
+    var cookies = await redis.get("kakao_cookies");
 
     if (!cookies) {
       const browser = await start();
       cookies = await logIn(browser);
       await browser.close();
-      await redis.set('kakao_cookies', cookies, 'EX', 259200);
+      await redis.set("kakao_cookies", cookies, "EX", 259200);
     }
 
     const isValid = await checkCookiesValidity(cookies);
@@ -670,13 +574,13 @@ async function getLatestChapter(
       const browser = await start();
       cookies = await logIn(browser);
       await browser.close();
-      await redis.set('kakao_cookies', cookies, 'EX', 259200);
+      await redis.set("kakao_cookies", cookies, "EX", 259200);
     }
 
     console.log(cookies);
     const chapters = await getChaptersList(seriesId, "desc");
     console.log(chapters);
-    const chapter = chapters[0]
+    const chapter = chapters[0];
     if (chapter) {
       try {
         const content_chapter = await getChapterContent(
@@ -688,7 +592,8 @@ async function getLatestChapter(
           content_chapter.files,
           chapter.chapter_number.toString(),
           title.toString(),
-          cookies
+          cookies,
+          use_waifu as boolean
         );
         return chapter_file;
       } catch (error) {
@@ -706,7 +611,7 @@ async function getLatestChapter(
               await buyAndUseTicket(chapter.id, seriesId, cookies);
             } catch (error) {
               await buyAndUseTicket(chapter.id, seriesId, cookies);
-              console.log(error)
+              console.log(error);
             }
           }
           const content = await getChapterContent(
@@ -719,7 +624,8 @@ async function getLatestChapter(
               content.files,
               chapter.chapter_number.toString(),
               title.toString(),
-              cookies
+              cookies,
+              use_waifu as boolean
             );
             return chapter_file;
           }
@@ -732,7 +638,31 @@ async function getLatestChapter(
   }
 }
 
+async function logInAndSetCookies() {
+  var cookies = await redis.get("kakao_cookies");
 
+  if (!cookies) {
+    const browser = await start();
+    cookies = await logIn(browser);
+    await browser.close();
+    await redis.set("kakao_cookies", cookies, "EX", 259200);
+  }
 
+  const isValid = await checkCookiesValidity(cookies);
 
-export { handleChapter, getSpecificChapter, getLatestChapter };
+  if (!isValid) {
+    const browser = await start();
+    cookies = await logIn(browser);
+    await browser.close();
+    await redis.set("kakao_cookies", cookies, "EX", 259200);
+  }
+
+  console.log(cookies);
+}
+
+export {
+  handleChapter,
+  getSpecificChapter,
+  getLatestChapter,
+  logInAndSetCookies,
+};
