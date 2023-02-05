@@ -1,5 +1,6 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { CommandInteraction } from "discord.js";
+import { toUrl } from "../..";
 import { prisma } from "../../database";
 
 const allowedUsers = [
@@ -13,28 +14,30 @@ const allowedUsers = [
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("remove")
-    .setDescription("Remove a series from our database")
+    .setName("allow")
+    .setDescription("Allow an user to use the bot")
     .setDefaultPermission(true)
-    .addStringOption((string) =>
-      string
-        .setName("kakaoid")
-        .setDescription("Type the kakaoID of the series.")
+    .addUserOption((user) =>
+      user
+        .setName("user")
         .setRequired(true)
+        .setDescription("Mention the user to be allowed")
     ),
   async execute(interaction: CommandInteraction) {
     const user = interaction.member?.user.id!;
-    const isAllowed = await prisma.allowedUsers.findFirst({
-      where: { user_id: user },
-    });
-
-    if (!isAllowed) {
+    if (!allowedUsers.includes(user)) {
       await interaction.editReply(`You're not allowed to use this command.`);
       return;
     }
-    const removed_id = interaction.options.getString("kakaoid")!;
-    await prisma.series.deleteMany({ where: { kakaoId: removed_id } });
-    await interaction.editReply("Series removed.");
-    return;
+
+    const allowed_user = interaction.options.getUser("user")!;
+
+    await prisma.allowedUsers.create({
+      data: {
+        user_id: allowed_user.id,
+      },
+    });
+
+    await interaction.editReply(`New user allowed: <@${allowed_user.id}>`);
   },
 };

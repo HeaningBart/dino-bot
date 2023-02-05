@@ -1,5 +1,6 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { CommandInteraction } from "discord.js";
+import { prisma } from "../../database";
 import {
   getChaptersList,
   getSpecificChapter as getChapter,
@@ -33,7 +34,11 @@ module.exports = {
     ),
   async execute(interaction: CommandInteraction) {
     const user = interaction.member?.user.id!;
-    if (!allowedUsers.includes(user)) {
+    const isAllowed = await prisma.allowedUsers.findFirst({
+      where: { user_id: user },
+    });
+
+    if (!isAllowed) {
       await interaction.editReply(`You're not allowed to use this command.`);
       return;
     }
