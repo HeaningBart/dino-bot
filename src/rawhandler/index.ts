@@ -65,6 +65,10 @@ async function handleChapter(
       console.log("All images have been through waifu-2x-caffe.");
     }
 
+    use_waifu
+      ? await exec(`7z a public/${chaptername}.7z  ./${waifu_directory}/*`)
+      : await exec(`7z a public/${chaptername}.7z  ./${directory}/Stitched*`);
+
     await exec(`7z a public/${chaptername}.7z  ./${waifu_directory}/*`);
 
     const Buffer = await fs.readFile(`./public/${chaptername}.7z`);
