@@ -14,6 +14,7 @@ const { email, password } = require("../../../config.json");
 export async function start() {
   const browser = await puppeteer.launch({
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    headless: false,
   });
   return browser;
 }
@@ -67,7 +68,11 @@ export async function logIn(browser: Browser) {
     } catch (e) {}
   }
 
-  await page.waitForNavigation({ timeout: 300000 });
+  try {
+    await page.waitForNavigation({ timeout: 10000 });
+  } catch (error) {
+    console.log(error);
+  }
 
   const cookies = await page.cookies();
   const new_cookies = cookies.map((item) => `${item.name}=${item.value};`);

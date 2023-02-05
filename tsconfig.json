@@ -12,35 +12,24 @@
     "skipLibCheck": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "baseUrl": ".",
-    "paths": {
-      "@components/*": [
-        "components/*"
-      ],
-      "@src/*": [
-        "src/*"
-      ],
-      "@pages/*": [
-        "pages/*"
-      ],
-      "@services/*": [
-        "services/*"
-      ],
-    },
+    "rootDir": "./",
+    "outDir": "build"
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
-    "**/*.tsx"
+    "**/*.tsx",
+    "**/*"
   ],
   "exclude": [
-    "node_modules"
-  ]
+    "node_modules",
+    "build",
+    "prisma",
+  ],
 }

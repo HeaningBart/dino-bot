@@ -61,6 +61,8 @@ client.on("ready", async () => {
   }
 });
 
+console.log(token);
+
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isCommand()) return;
   await interaction.deferReply();
