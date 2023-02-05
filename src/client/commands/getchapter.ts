@@ -1,10 +1,10 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { CommandInteraction } from "discord.js";
-import { toUrl } from "../..";
+import { toUrl } from "../../utils";
 import { getSpecificChapter as getChapter } from "../../rawhandler";
 
 import { prisma } from "../../database";
-import { rawsQueue } from "../../queue/bull";
+import { rawsQueue } from "../../queue/raws";
 const allowedUsers = [
   "397857749938995201",
   "345938621137944577",
@@ -69,7 +69,9 @@ module.exports = {
         command: "getchapter",
         chapter_number: chapter_number.toString(),
       });
-    await interaction.editReply("RP done.");
+    await interaction.editReply(
+      "Chapter added to the queue. It'll be sent in the channel in a few seconds/minutes."
+    );
     return;
   },
 };

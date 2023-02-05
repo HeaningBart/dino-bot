@@ -100,50 +100,153 @@ type chapter = {
   age_15: boolean;
 };
 
+type kakaoEdge = {
+  cursor: string;
+  node: {
+    id: string;
+    type: string;
+    single: {
+      productId: number;
+      isFree: boolean;
+      id: string;
+      ageGrade: string;
+      thumbnail: string;
+      title: string;
+    };
+  };
+  __typename: string;
+};
+
+type kakaoNode = {
+  productId: number;
+  isFree: boolean;
+  id: string;
+  ageGrade: string;
+  thumbnail: string;
+  title: string;
+};
+
+type kakaoChaptersResponse = {
+  edges: kakaoEdge[];
+  pageInfo: {
+    endCursor: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+    startCursor: number;
+  };
+  totalCount: number;
+};
+
+function formatChapters(
+  kakao_chapters: kakaoEdge[],
+  seriesid: number | string
+): chapter[] {
+  return kakao_chapters.map((kakao_node, index: number) => {
+    const chapter: kakaoNode = kakao_node.node.single;
+
+    const number = chapter.title
+      .split(" ")
+      .find((element: string) => element.includes("화"))
+      ? parseInt(
+          chapter.title
+            .split(" ")
+            .find((element: string) => element.includes("화"))!
+            .replaceAll(/\D/g, "")
+        )
+      : 0;
+
+    return {
+      id: chapter.productId,
+      title: chapter.title,
+      free: chapter.isFree,
+      chapter_number: number ? number : index,
+      series_id: seriesid as string,
+      age_15: chapter.ageGrade == "All" ? false : true,
+    };
+  });
+}
+
+const fetchChapters = async (
+  seriesid: string | number,
+  after: string = "0"
+) => {
+  const bodyData = {
+    operationName: "contentHomeProductList",
+    query:
+      "query contentHomeProductList($after: String, $before: String, $first: Int, $last: Int, $seriesId: Long!, $boughtOnly: Boolean, $sortType: String) {\n  contentHomeProductList(\n    seriesId: $seriesId\n    after: $after\n    before: $before\n    first: $first\n    last: $last\n    boughtOnly: $boughtOnly\n    sortType: $sortType\n  ) {\n    totalCount\n    pageInfo {\n      hasNextPage\n      endCursor\n      hasPreviousPage\n      startCursor\n      __typename\n    }\n    selectedSortOption {\n      id\n      name\n      param\n      __typename\n    }\n    sortOptionList {\n      id\n      name\n      param\n      __typename\n    }\n    edges {\n      cursor\n      node {\n        ...SingleListViewItem\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment SingleListViewItem on SingleListViewItem {\n  id\n  type\n  thumbnail\n  showPlayerIcon\n  isCheckMode\n  isChecked\n  scheme\n  row1 {\n    badgeList\n    title\n    __typename\n  }\n  row2\n  row3\n  single {\n    productId\n    ageGrade\n    id\n    isFree\n    thumbnail\n    title\n    slideType\n    operatorProperty {\n      isTextViewer\n      __typename\n    }\n    __typename\n  }\n  isViewed\n  purchaseInfoText\n  eventLog {\n    ...EventLogFragment\n    __typename\n  }\n}\n\nfragment EventLogFragment on EventLog {\n  click {\n    layer1\n    layer2\n    setnum\n    ordnum\n    copy\n    imp_id\n    imp_provider\n    __typename\n  }\n  eventMeta {\n    id\n    name\n    subcategory\n    category\n    series\n    provider\n    series_id\n    type\n    __typename\n  }\n  viewimp_contents {\n    type\n    name\n    id\n    imp_area_ordnum\n    imp_id\n    imp_provider\n    imp_type\n    layer1\n    layer2\n    __typename\n  }\n  customProps {\n    landing_path\n    view_type\n    toros_imp_id\n    toros_file_hash_key\n    toros_event_meta_id\n    content_cnt\n    event_series_id\n    event_ticket_type\n    play_url\n    __typename\n  }\n}\n",
+    variables: {
+      seriesId: seriesid,
+      boughtOnly: false,
+      sortType: "desc",
+      after,
+    },
+  };
+
+  const response = await axios.post("https://page.kakao.com/graphql", bodyData);
+
+  console.log(response.data);
+
+  return response.data.data.contentHomeProductList;
+};
+
+export async function getFullChaptersList(
+  seriesid: string | number,
+  order: string
+): Promise<chapter[]> {
+  if (order == "asc" || order == "desc") {
+    const chapters: chapter[] = [];
+
+    const fetchUntilSatisfied = async (
+      seriesid: string | number,
+      chapters: chapter[],
+      after: string = "0"
+    ) => {
+      const response = await fetchChapters(seriesid, after);
+      console.log(response);
+      const kakao_chapters = formatChapters(response.edges, seriesid);
+      chapters.push(...kakao_chapters);
+
+      if (response.pageInfo.hasNextPage) {
+        await fetchUntilSatisfied(
+          seriesid,
+          chapters,
+          `${response.pageInfo.endCursor}`
+        );
+      } else {
+        return;
+      }
+    };
+
+    await fetchUntilSatisfied(seriesid, chapters);
+
+    return chapters;
+  } else return [];
+}
+
 export async function getChaptersList(
   seriesid: string | number,
   order: string
 ): Promise<chapter[]> {
   if (order == "asc" || order == "desc") {
-    const response = await axios.post("https://page.kakao.com/graphql", {
-      operationName: "contentHomeProductList",
-      query:
-        "query contentHomeProductList($after: String, $before: String, $first: Int, $last: Int, $seriesId: Long!, $boughtOnly: Boolean, $sortType: String) {\n  contentHomeProductList(\n    seriesId: $seriesId\n    after: $after\n    before: $before\n    first: $first\n    last: $last\n    boughtOnly: $boughtOnly\n    sortType: $sortType\n  ) {\n    totalCount\n    pageInfo {\n      hasNextPage\n      endCursor\n      hasPreviousPage\n      startCursor\n      __typename\n    }\n    selectedSortOption {\n      id\n      name\n      param\n      __typename\n    }\n    sortOptionList {\n      id\n      name\n      param\n      __typename\n    }\n    edges {\n      cursor\n      node {\n        ...SingleListViewItem\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment SingleListViewItem on SingleListViewItem {\n  id\n  type\n  thumbnail\n  showPlayerIcon\n  isCheckMode\n  isChecked\n  scheme\n  row1 {\n    badgeList\n    title\n    __typename\n  }\n  row2\n  row3\n  single {\n    productId\n    ageGrade\n    id\n    isFree\n    thumbnail\n    title\n    slideType\n    operatorProperty {\n      isTextViewer\n      __typename\n    }\n    __typename\n  }\n  isViewed\n  purchaseInfoText\n  eventLog {\n    ...EventLogFragment\n    __typename\n  }\n}\n\nfragment EventLogFragment on EventLog {\n  click {\n    layer1\n    layer2\n    setnum\n    ordnum\n    copy\n    imp_id\n    imp_provider\n    __typename\n  }\n  eventMeta {\n    id\n    name\n    subcategory\n    category\n    series\n    provider\n    series_id\n    type\n    __typename\n  }\n  viewimp_contents {\n    type\n    name\n    id\n    imp_area_ordnum\n    imp_id\n    imp_provider\n    imp_type\n    layer1\n    layer2\n    __typename\n  }\n  customProps {\n    landing_path\n    view_type\n    toros_imp_id\n    toros_file_hash_key\n    toros_event_meta_id\n    content_cnt\n    event_series_id\n    event_ticket_type\n    play_url\n    __typename\n  }\n}\n",
-      variables: {
-        seriesId: seriesid,
-        boughtOnly: false,
-        sortType: "desc",
-      },
-    });
-    if (response.data.data.contentHomeProductList.edges) {
-      const kakao_chapters = response.data.data.contentHomeProductList.edges;
+    const chapters: chapter[] = [];
 
-      const chapters = kakao_chapters
-        .map((kakao_node: any, index: any) => {
-          const chapter = kakao_node.node.single;
-          if (chapter.slideType === "Comic") {
-            let true_number: any = chapter.title
-              .split(" ")
-              .find((element: string) => element.includes("화"))
-              ?.replaceAll(/\D/g, "");
-            if (true_number) true_number = parseInt(true_number);
-            return {
-              id: chapter.productId,
-              title: chapter.title,
-              free: chapter.isFree,
-              chapter_number: true_number
-                ? true_number
-                : chapter.title.replaceAll(/\D/g, ""),
-              series_id: seriesid,
-              age_15: chapter.ageGrade == "All" ? false : true,
-            };
-          }
-        })
-        .filter((element: any) => element !== undefined);
-      return chapters;
-    }
+    const fetchUntilSatisfied = async (
+      seriesid: string | number,
+      chapters: chapter[],
+      after: string = "0"
+    ) => {
+      const response = await fetchChapters(seriesid, after);
+      console.log(response);
+      const kakao_chapters = formatChapters(response.edges, seriesid);
+      chapters.push(...kakao_chapters);
+
+      return;
+    };
+
+    await fetchUntilSatisfied(seriesid, chapters);
+
+    return chapters;
   } else return [];
-  return [];
 }
 
 function getDriveDownloadUrl(string: string): string {
@@ -495,7 +598,7 @@ async function getSpecificChapter(
     }
 
     console.log(cookies);
-    const chapters = await getChaptersList(seriesId, "desc");
+    const chapters = await getFullChaptersList(seriesId, "desc");
     console.log(chapters);
     console.log(seriesId, chapter_number, title);
     const chapter = chapters.find(

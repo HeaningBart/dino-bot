@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { CommandInteraction } from "discord.js";
-import { toUrl } from "../..";
+import { toUrl } from "../../utils";
 import { prisma } from "../../database";
 
 const allowedUsers = [

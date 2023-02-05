@@ -1,79 +1,17 @@
 import { TextChannel } from "discord.js";
-import { getLatestChapter, logInAndSetCookies } from "./rawhandler";
+import { logInAndSetCookies } from "./rawhandler";
 import schedule from "node-schedule";
-import { Series } from "@prisma/client";
 import { client } from "./client";
-import { rawsQueue } from "./queue/bull";
-const { log_channel } = require("../config.json");
+import { rawsQueue } from "./queue/raws";
+const { log_channel, cron } = require("../config.json");
 import { prisma } from "./database";
+import { setCron, getWeeklyRaw, getDay } from "./utils";
 
-export function toUrl(string: string): string {
-  return string
-    .toLowerCase()
-    .replaceAll(".", "-")
-    .replaceAll(`'`, "")
-    .replaceAll(/[!$%^&*()_+|~=`{}\[\]:";'<>?,\/]/g, "")
-    .replaceAll(" ", "-");
-}
-
-function getDay() {
-  const week_days = [
-    "sunday",
-    "monday",
-    "tuesday",
-    "wednesday",
-    "thursday",
-    "friday",
-    "saturday",
-  ];
-  const today = new Date();
-  return week_days[today.getDay()];
-}
-
-async function getWeeklyRaw(series: Series) {
-  client.user?.setPresence({
-    status: "dnd",
-    activities: [
-      {
-        name: `Getting raws of ${series.title}`,
-        type: "WATCHING",
-        url: "https://reaperscans.com",
-      },
-    ],
-  });
-  const channel = client.channels.cache.get(series.channel) as TextChannel;
-  const role = series.role;
-  const file = await getLatestChapter(series.kakaoId, series.slug);
-  if (file?.startsWith("https")) {
-    await channel.send({
-      content: `Weekly chapter of ${series.title}, <@&${role}>, <@&946250134042329158>: ${file}`,
-    });
-  } else {
-    await channel.send({
-      content: `Weekly chapter of ${series.title}, <@&${role}>, <@&946250134042329158>: https://raws.reaperscans.com/${file}`,
-    });
-  }
-  await channel.send(
-    `Don't forget to report your progress in <#794058643624034334> after you are done with your part.`
-  );
-
-  client.user?.setPresence({
-    status: "dnd",
-    activities: [
-      {
-        name: `I'm Heaning's creation.`,
-        type: "WATCHING",
-        url: "https://reaperscans.com",
-      },
-    ],
-  });
-}
-
-schedule.scheduleJob("43 10 * * *", async function () {
-  const cron = getDay();
+schedule.scheduleJob(cron, async function () {
+  const daily = getDay();
   try {
     const daily_series = await prisma.series.findMany({
-      where: { cron, weekly: true },
+      where: { cron: daily, weekly: true },
       orderBy: { priority: "desc" },
     });
     for (let i = 0; i <= daily_series.length - 1; i++) {
@@ -85,6 +23,8 @@ schedule.scheduleJob("43 10 * * *", async function () {
         await channel.send("Stack: " + error);
       }
     }
+
+    await setCron(1, true);
   } catch (error) {
     console.log(error);
   }
