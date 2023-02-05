@@ -3,6 +3,7 @@ import { CommandInteraction } from "discord.js";
 import { prisma } from "../../database";
 import {
   getChaptersList,
+  getFullChaptersList,
   getSpecificChapter as getChapter,
 } from "../../rawhandler";
 
@@ -45,7 +46,7 @@ module.exports = {
     const range_seriesid = interaction.options.getString("seriesid")!;
     const range_start = interaction.options.getNumber("start")!;
     const range_end = interaction.options.getNumber("end")!;
-    const new_chapters = await getChaptersList(range_seriesid, "asc");
+    const new_chapters = await getFullChaptersList(range_seriesid, "asc");
 
     const chapters_to_rp = new_chapters
       .filter(
