@@ -51,11 +51,13 @@ client.on("ready", async () => {
     }
     console.log("The bot is ready!");
 
-    // const channel = client.channels.cache.get(`794058138110001184`);
+    const commands = [];
+    const command = require("./commands/update") as commandType;
+    commands.push(command.data);
 
-    // if (channel?.isText()) {
-    //   channel.send("yes");
-    // }
+    await rest.put(Routes.applicationCommands(client.application!.id), {
+      body: commands,
+    });
   } catch (error) {
     console.log(error);
   }
