@@ -2,6 +2,7 @@ import { Browser } from "puppeteer";
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import RecaptchaPlugin from "puppeteer-extra-plugin-recaptcha";
+const { device_id } = require("../../../config.json");
 puppeteer.use(StealthPlugin());
 puppeteer.use(
   RecaptchaPlugin({
@@ -28,7 +29,7 @@ export async function logIn(browser: Browser) {
   } catch (error) {}
   await page.setCookie({
     name: "_kpdid",
-    value: "a6f58d9219f044d4985f131c72b0085e",
+    value: device_id,
     domain: ".kakao.com",
     httpOnly: true,
     path: "/",

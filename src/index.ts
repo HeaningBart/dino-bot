@@ -69,7 +69,7 @@ async function getWeeklyRaw(series: Series) {
   });
 }
 
-schedule.scheduleJob("01 10 * * *", async function () {
+schedule.scheduleJob("43 10 * * *", async function () {
   const cron = getDay();
   try {
     const daily_series = await prisma.series.findMany({
