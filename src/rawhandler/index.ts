@@ -67,7 +67,7 @@ async function handleChapter(
 
     use_waifu
       ? await exec(`7z a public/${chaptername}.7z  ./${waifu_directory}/*`)
-      : await exec(`7z a public/${chaptername}.7z  ./${directory}/Stitched*`);
+      : await exec(`7z a public/${chaptername}.7z  ./${directory}/Stitched/*`);
 
     await exec(`7z a public/${chaptername}.7z  ./${waifu_directory}/*`);
 
