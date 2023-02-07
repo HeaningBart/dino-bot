@@ -75,6 +75,9 @@ export async function getSeriesInfo(comic_slug: string): Promise<LezhinSeries> {
       },
     }
   );
+
+  console.log(html.data);
+
   const first_index = html.data.indexOf("product: ");
   const last_index = html.data.indexOf("departure: '',");
   const parsed = html.data
