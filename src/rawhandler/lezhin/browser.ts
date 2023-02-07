@@ -64,9 +64,15 @@ export async function logIn(browser: Browser) {
   const new_cookies = cookies.map((item) => `${item.name}=${item.value};`);
   const filtered_cookies = new_cookies.join(" ");
 
-  console.log(filtered_cookies);
-
   await redis.set("lezhin_cookies", filtered_cookies);
+
+  console.log("Cookies are set.");
+
+  try {
+    await page.goto("https://www.lezhin.com/ko/adult");
+    await page.click("button#btn-yes");
+    await page.waitForNavigation();
+  } catch (error) {}
 
   return bearer_token;
 }
