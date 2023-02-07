@@ -42,7 +42,7 @@ module.exports = {
         )
         .addChoices([
           ["kakao", "kakao"],
-          ["lezhing", "lezhing"],
+          ["lezhin", "lezhin"],
           ["pyccoma", "pyccoma"],
         ])
     )
