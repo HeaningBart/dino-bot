@@ -20,7 +20,6 @@ const {
 export async function start() {
   const browser = await puppeteer.launch({
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    headless: false,
   });
   return browser;
 }
