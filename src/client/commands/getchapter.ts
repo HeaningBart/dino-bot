@@ -14,6 +14,8 @@ const allowedUsers = [
   "324522444285280276",
 ];
 
+type RawsWebsites = "kakao" | "lezhin" | "pyccoma";
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("getchapter")
@@ -30,6 +32,19 @@ module.exports = {
         .setName("seriestitle")
         .setRequired(true)
         .setDescription(`Series' title.`)
+    )
+    .addStringOption((string) =>
+      string
+        .setName("type")
+        .setRequired(true)
+        .setDescription(
+          `Type of the series. Kakao / lezhing / pyccoma(not supported yet)`
+        )
+        .addChoices([
+          ["kakao", "kakao"],
+          ["lezhing", "lezhing"],
+          ["pyccoma", "pyccoma"],
+        ])
     )
     .addIntegerOption((integer) =>
       integer
@@ -50,6 +65,7 @@ module.exports = {
     const kakao_series_id = interaction.options.getString("kakaoid")!;
     const chapter_number = interaction.options.getInteger("chapternumber")!;
     const kakao_title = interaction.options.getString("seriestitle")!;
+    const type = interaction.options.getString("type")! as RawsWebsites;
     const series = await prisma.series.findFirst({
       where: { kakaoId: kakao_series_id },
     });
@@ -61,6 +77,7 @@ module.exports = {
         chapter_number: chapter_number.toString(),
         role_id: series.role,
         series_title: series.title,
+        type,
       });
     if (!series)
       rawsQueue.add({
@@ -68,6 +85,7 @@ module.exports = {
         channel_id: interaction.channelId,
         command: "getchapter",
         chapter_number: chapter_number.toString(),
+        type,
       });
     await interaction.editReply(
       "Chapter added to the queue. It'll be sent in the channel in a few seconds/minutes."
