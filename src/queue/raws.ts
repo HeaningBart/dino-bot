@@ -56,12 +56,7 @@ rawsQueue.process(async (job, done) => {
   }
 
   if (type === "lezhin") {
-    await startup();
-    const lezhin_series = await getSeriesInfo(kakaoId);
-    const chapter = await getLezhinSpecificChapter(
-      lezhin_series.id.toString(),
-      chapter_number!
-    );
+    const chapter = await getLezhinSpecificChapter(kakaoId, chapter_number!);
     const channel = client.channels.cache.get(channel_id);
     if (channel?.isText()) {
       command === "weekly"
