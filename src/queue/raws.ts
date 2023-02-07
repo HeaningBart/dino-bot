@@ -34,6 +34,8 @@ rawsQueue.process(async (job, done) => {
     type,
   } = job.data;
 
+  console.log(job.data);
+
   if (type === "kakao") {
     const chapter =
       command === "weekly"
