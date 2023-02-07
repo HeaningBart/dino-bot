@@ -121,6 +121,13 @@ export async function getEpisodeContent(
   const bearer = (await redis.get("lezhin_bearer"))!;
   const cookie = (await redis.get("lezhin_cookies"))!;
 
+  await axios.get("https://www.lezhin.com/internal/isLogin", {
+    headers: {
+      Authorization: `Bearer ${bearer}`,
+      cookie,
+    },
+  });
+
   const unparsed = await axios.get(
     `https://www.lezhin.com/lz-api/v2/inventory_groups/comic_viewer?platform=web&store=web&alias=${comic_slug}&name=${episode_name}&preload=false&type=comic_episode`,
     {
