@@ -67,3 +67,6 @@ export async function getLezhinLatestChapter(
     ("Chapter wasnt found.");
   }
 }
+
+export * from "./api";
+export * from "./browser";
