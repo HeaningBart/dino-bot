@@ -6,7 +6,7 @@ import {
 } from "./api";
 import { startup } from "./browser";
 import { handleChapter } from "..";
-const { waifu: use_waifu } = require("../../config.json");
+const { waifu: use_waifu } = require("../../../config.json");
 
 export async function getLezhinSpecificChapter(
   seriesId: string,
