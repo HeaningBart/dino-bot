@@ -60,6 +60,12 @@ export async function logIn(browser: Browser) {
 
   await redis.set("lezhin_bearer", bearer_token);
 
+  try {
+    await page.goto("https://www.lezhin.com/ko/adult");
+    await page.click("button#btn-yes");
+    await page.waitForNavigation();
+  } catch (error) {}
+
   const cookies = await page.cookies();
   const new_cookies = cookies.map((item) => `${item.name}=${item.value};`);
   const filtered_cookies = new_cookies.join(" ");
@@ -67,12 +73,6 @@ export async function logIn(browser: Browser) {
   await redis.set("lezhin_cookies", filtered_cookies);
 
   console.log("Cookies are set.");
-
-  try {
-    await page.goto("https://www.lezhin.com/ko/adult");
-    await page.click("button#btn-yes");
-    await page.waitForNavigation();
-  } catch (error) {}
 
   return bearer_token;
 }

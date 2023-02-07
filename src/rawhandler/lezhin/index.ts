@@ -13,9 +13,10 @@ export async function getLezhinSpecificChapter(
   chapter_number: string | number
 ) {
   await startup();
+  console.log("Indo pegar as informações da série...");
   const series = await getSeriesInfo(seriesSlug);
+  console.log("Informações obtidas!");
   const chapters_list = series.episodes;
-  console.log(chapters_list);
   const chapter = chapters_list.find(
     (chapter) => chapter.seq == chapter_number
   );
