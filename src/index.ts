@@ -39,10 +39,4 @@ logInAndSetCookies()
   .then(() => "Tudo certo!")
   .catch((e) => console.log(e));
 
-(async () => {
-  const browser = await start();
-  await logIn(browser);
-  await getLatestChapter(81737, "dp", browser);
-})();
-
 export { client };
