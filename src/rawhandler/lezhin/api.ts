@@ -190,26 +190,3 @@ export async function buyChapter(episode: LezhingEpisode) {
     }
   );
 }
-
-(async () => {
-  await startup();
-  const series = await getSeriesInfo("farm");
-
-  const chapters_list = series.episodes;
-
-  const chapter = chapters_list.find((chapter) => chapter.seq === 12);
-
-  const bought_chapters = await getBoughtChapters(series.id);
-
-  if (chapter && !bought_chapters.includes(chapter.id)) {
-    await buyChapter(chapter);
-  }
-
-  console.log(bought_chapters);
-
-  if (chapter) {
-    const content = await getEpisodeContent("farm", chapter?.name);
-    console.log(content);
-  }
-  return;
-})();
