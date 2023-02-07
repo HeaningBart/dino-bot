@@ -76,8 +76,6 @@ export async function getSeriesInfo(comic_slug: string): Promise<LezhinSeries> {
     }
   );
 
-  console.log(html.data);
-
   const first_index = html.data.indexOf("product: ");
   const last_index = html.data.indexOf("departure: '',");
   const parsed = html.data
@@ -100,13 +98,19 @@ async function getRequestHeaders() {
 }
 
 export async function getAuthKeys(episode: LezhingEpisodeContent) {
-  const headers = await getRequestHeaders();
+  const bearer = (await redis.get("lezhin_bearer"))!;
+  const cookie = (await redis.get("lezhin_cookies"))!;
+
+  console.log(`Bearer ${bearer}`);
 
   const auth = (
-    await Lezhin_API.get(
-      `cloudfront/signed-url/generate?contentId=${episode.contentId}&episodeId=${episode.id}&purchased=false&q=30&firstCheckType=P`,
+    await axios.get(
+      `https://www.lezhin.com/lz-api/v2/cloudfront/signed-url/generate?contentId=${episode.contentId}&episodeId=${episode.id}&purchased=false&q=30&firstCheckType=P`,
       {
-        headers,
+        headers: {
+          Authorization: `Bearer ${bearer}`,
+          cookie,
+        },
       }
     )
   ).data.data as AuthObject;
@@ -120,13 +124,6 @@ export async function getEpisodeContent(
 ) {
   const bearer = (await redis.get("lezhin_bearer"))!;
   const cookie = (await redis.get("lezhin_cookies"))!;
-
-  await axios.get("https://www.lezhin.com/internal/isLogin", {
-    headers: {
-      Authorization: `Bearer ${bearer}`,
-      cookie,
-    },
-  });
 
   const unparsed = await axios.get(
     `https://www.lezhin.com/lz-api/v2/inventory_groups/comic_viewer?platform=web&store=web&alias=${comic_slug}&name=${episode_name}&preload=false&type=comic_episode`,
@@ -144,6 +141,18 @@ export async function getEpisodeContent(
 
   const unparsed_content = unparsed.data.data.extra
     .episode as LezhingEpisodeContent;
+
+  // const isLoggedIn = await axios.get(
+  //   "https://www.lezhin.com/internal/isLogin",
+  //   {
+  //     headers: {
+  //       Authorization: `Bearer ${bearer}`,
+  //       cookie,
+  //     },
+  //   }
+  // );
+
+  // console.log(isLoggedIn);
 
   const {
     "Key-Pair-Id": KPI,

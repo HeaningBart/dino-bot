@@ -26,7 +26,7 @@ export async function getLezhinSpecificChapter(
   }
   console.log(bought_chapters);
   if (chapter) {
-    const content = await getEpisodeContent("farm", chapter?.name);
+    const content = await getEpisodeContent(seriesSlug, chapter?.name);
     const chapter_url = await handleChapter(
       content,
       chapter_number.toString(),
@@ -56,7 +56,7 @@ export async function getLezhinLatestChapter(
   }
   console.log(bought_chapters);
   if (chapter) {
-    const content = await getEpisodeContent("farm", chapter?.name);
+    const content = await getEpisodeContent(seriesId, chapter?.name);
     const chapter_url = await handleChapter(
       content,
       chapter_number.toString(),
