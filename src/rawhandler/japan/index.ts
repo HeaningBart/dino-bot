@@ -23,6 +23,7 @@ export async function start() {
       "--disable-dev-shm-usage",
       `--proxy-server=https://jp547.nordvpn.com:89`,
     ],
+    headless: false,
   });
 
   return browser;
@@ -32,7 +33,6 @@ const get_checksum = (img_url: string) => {
   const split_url = img_url.split("/");
   return split_url[split_url.length - 2];
 };
-
 
 export async function logIn(browser: Browser) {
   const page = await browser.newPage();
@@ -51,13 +51,9 @@ export async function logIn(browser: Browser) {
       form.submit();
     }
   });
-  await page.waitForNavigation({ timeout: 30000 })
+  await page.waitForNavigation({ timeout: 30000 });
   await page.close();
 }
-
-
-
-
 
 export async function getLatestChapter(
   series_id: string | number,
@@ -79,22 +75,22 @@ export async function getLatestChapter(
   await page.click(`a[data-episode_id="${chapter_id}"]`);
 
   try {
-    await page.waitForNavigation({ timeout: 30000 })
-  } catch (error) {
-
-  }
+    await page.waitForNavigation({ timeout: 30000 });
+  } catch (error) {}
 
   try {
     await page.click("div.jconfirm-buttons > button", {
       clickCount: 2000,
-      delay: 1000
+      delay: 1000,
     });
     await page.evaluate(() => {
-      const button = document.querySelector<HTMLButtonElement>('div.jconfirm-buttons > button');
+      const button = document.querySelector<HTMLButtonElement>(
+        "div.jconfirm-buttons > button"
+      );
       if (button) {
         button.click();
       }
-    })
+    });
   } catch (error) {
     console.log(error);
   }
@@ -106,10 +102,11 @@ export async function getLatestChapter(
 
   await browser.close();
 
-  console.log('this is pdata' + chapter_data);
+  console.log("this is pdata" + chapter_data);
 
   var img_data = chapter_data.img.map((item: any) => item.path);
-  const chapter_title = chapter_data.title.replaceAll(/\D/g, "") + `-${chapter_data.episode_id}`;
+  const chapter_title =
+    chapter_data.title.replaceAll(/\D/g, "") + `-${chapter_data.episode_id}`;
   const directory = `chapter-${chapter_title}-${series_name}`;
   const waifu_directory = `waifu-${chapter_title}-${series_name}`;
 
@@ -133,12 +130,11 @@ export async function getLatestChapter(
     return x.get("expires");
   });
 
-
   const functio = (checksum: string, expires: string) => {
     const key = expires;
 
     for (let i = 0; i <= key.length - 1; i++) {
-      if (key[i] !== '0') {
+      if (key[i] !== "0") {
         checksum =
           checksum.slice(-key[i]) +
           checksum.slice(0, checksum.length - parseInt(key[i]));
@@ -146,8 +142,7 @@ export async function getLatestChapter(
     }
 
     return checksum;
-
-  }
+  };
 
   const seeds_array = img_data.map((item: any, index: any) => {
     const seed = functio(get_checksum(item), expires_array[index]);
@@ -164,10 +159,11 @@ export async function getLatestChapter(
   for (let i = 0; i <= img_data.length - 1; i++) {
     try {
       await exec(
-        `pycasso ${directory}/${i}.jpg ${directory}/output/${i + 1} scramble -n 50 50 -s ${seeds_array[i]} -f jpeg`
+        `pycasso ${directory}/${i}.jpg ${directory}/output/${
+          i + 1
+        } scramble -n 50 50 -s ${seeds_array[i]} -f jpeg`
       );
-    } catch (error) {
-    }
+    } catch (error) {}
   }
 
   try {
@@ -192,7 +188,7 @@ export async function getLatestChapter(
 
     return `${directory}.7z`;
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
 }
 
@@ -210,14 +206,16 @@ export async function getListOfChapters(
   );
 
   const chapters_ids = await page.evaluate(() => {
-    const chapters = Array.from(document.querySelectorAll(`a[data-user_access="require"]`));
+    const chapters = Array.from(
+      document.querySelectorAll(`a[data-user_access="require"]`)
+    );
     const filtered_chapters = chapters.map((item: any) => {
-      return item.getAttribute('data-episode_id');
-    })
+      return item.getAttribute("data-episode_id");
+    });
     return filtered_chapters;
   });
 
-  const selected_chapters = chapters_ids.slice(-number_of_chapters)
+  const selected_chapters = chapters_ids.slice(-number_of_chapters);
 
   console.log(selected_chapters);
 
@@ -243,22 +241,22 @@ export async function getSpecificChapter(
   await page.click(`a[data-episode_id="${episode_id}"]`);
 
   try {
-    await page.waitForNavigation({ timeout: 30000 })
-  } catch (error) {
-
-  }
+    await page.waitForNavigation({ timeout: 30000 });
+  } catch (error) {}
 
   try {
     await page.click("div.jconfirm-buttons > button", {
       clickCount: 2000,
-      delay: 1000
+      delay: 1000,
     });
     await page.evaluate(() => {
-      const button = document.querySelector<HTMLButtonElement>('div.jconfirm-buttons > button');
+      const button = document.querySelector<HTMLButtonElement>(
+        "div.jconfirm-buttons > button"
+      );
       if (button) {
         button.click();
       }
-    })
+    });
   } catch (error) {
     console.log(error);
   }
@@ -268,11 +266,11 @@ export async function getSpecificChapter(
     return data;
   });
 
-
-  console.log('this is pdata' + chapter_data);
+  console.log("this is pdata" + chapter_data);
 
   var img_data = chapter_data.img.map((item: any) => item.path);
-  const chapter_title = chapter_data.title.replaceAll(/\D/g, "") + `-${chapter_data.episode_id}`;
+  const chapter_title =
+    chapter_data.title.replaceAll(/\D/g, "") + `-${chapter_data.episode_id}`;
   const directory = `chapter-${chapter_title}-${series_name}`;
   const waifu_directory = `waifu-${chapter_title}-${series_name}`;
 
@@ -296,12 +294,11 @@ export async function getSpecificChapter(
     return x.get("expires");
   });
 
-
   const functio = (checksum: string, expires: string) => {
     const key = expires;
 
     for (let i = 0; i <= key.length - 1; i++) {
-      if (key[i] !== '0') {
+      if (key[i] !== "0") {
         checksum =
           checksum.slice(-key[i]) +
           checksum.slice(0, checksum.length - parseInt(key[i]));
@@ -309,8 +306,7 @@ export async function getSpecificChapter(
     }
 
     return checksum;
-
-  }
+  };
 
   const seeds_array = img_data.map((item: any, index: any) => {
     const seed = functio(get_checksum(item), expires_array[index]);
@@ -327,10 +323,11 @@ export async function getSpecificChapter(
   for (let i = 0; i <= img_data.length - 1; i++) {
     try {
       await exec(
-        `pycasso ${directory}/${i}.jpg ${directory}/output/${i + 1} scramble -n 50 50 -s ${seeds_array[i]} -f jpeg`
+        `pycasso ${directory}/${i}.jpg ${directory}/output/${
+          i + 1
+        } scramble -n 50 50 -s ${seeds_array[i]} -f jpeg`
       );
-    } catch (error) {
-    }
+    } catch (error) {}
   }
 
   try {
@@ -355,6 +352,6 @@ export async function getSpecificChapter(
 
     return `${directory}.7z`;
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
 }

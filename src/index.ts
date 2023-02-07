@@ -6,6 +6,7 @@ import { rawsQueue } from "./queue/raws";
 const { log_channel, cron } = require("../config.json");
 import { prisma } from "./database";
 import { setCron, getWeeklyRaw, getDay } from "./utils";
+import { start, logIn, getLatestChapter } from "./rawhandler/japan";
 
 schedule.scheduleJob(cron, async function () {
   const daily = getDay();
@@ -37,5 +38,11 @@ process.on("exit", async () => {
 logInAndSetCookies()
   .then(() => "Tudo certo!")
   .catch((e) => console.log(e));
+
+(async () => {
+  const browser = await start();
+  await logIn(browser);
+  await getLatestChapter(81737, "dp", browser);
+})();
 
 export { client };

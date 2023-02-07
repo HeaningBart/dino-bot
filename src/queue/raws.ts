@@ -1,6 +1,10 @@
 import Queue from "bull";
 import { getLatestChapter, getSpecificChapter } from "../rawhandler";
-import { getLezhinSpecificChapter } from "../rawhandler/lezhin";
+import {
+  getLezhinSpecificChapter,
+  getSeriesInfo,
+  startup,
+} from "../rawhandler/lezhin";
 import { client } from "../client";
 import { randomUUID } from "node:crypto";
 
@@ -52,7 +56,12 @@ rawsQueue.process(async (job, done) => {
   }
 
   if (type === "lezhin") {
-    const chapter = await getLezhinSpecificChapter(kakaoId, chapter_number!);
+    await startup();
+    const lezhin_series = await getSeriesInfo(kakaoId);
+    const chapter = await getLezhinSpecificChapter(
+      lezhin_series.id.toString(),
+      chapter_number!
+    );
     const channel = client.channels.cache.get(channel_id);
     if (channel?.isText()) {
       command === "weekly"
