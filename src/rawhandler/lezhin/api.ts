@@ -60,11 +60,17 @@ export const Lezhin_API = axios.create({
 
 export async function getSeriesInfo(comic_slug: string): Promise<LezhinSeries> {
   const cookie = (await redis.get("lezhin_cookies"))!;
-  console.log(cookie);
+  const bearer = (await redis.get("lezhin_bearer"))!;
+
+  const url = `https://www.lezhin.com/ko/comic/${comic_slug}`;
+
+  console.log(url);
+
   const html = await axios.get(
     `https://www.lezhin.com/ko/comic/${comic_slug}`,
     {
       headers: {
+        Authorization: "Bearer " + bearer,
         cookie,
       },
     }

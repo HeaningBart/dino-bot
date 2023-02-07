@@ -9,11 +9,11 @@ import { handleChapter } from "..";
 const { waifu: use_waifu } = require("../../../config.json");
 
 export async function getLezhinSpecificChapter(
-  seriesId: string,
+  seriesSlug: string,
   chapter_number: string | number
 ) {
   await startup();
-  const series = await getSeriesInfo(seriesId);
+  const series = await getSeriesInfo(seriesSlug);
   const chapters_list = series.episodes;
   const chapter = chapters_list.find(
     (chapter) => chapter.seq == chapter_number
@@ -28,7 +28,7 @@ export async function getLezhinSpecificChapter(
     const chapter_url = await handleChapter(
       content,
       chapter_number.toString(),
-      seriesId,
+      seriesSlug,
       "",
       use_waifu
     );
