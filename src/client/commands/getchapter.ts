@@ -44,6 +44,7 @@ module.exports = {
           ["kakao", "kakao"],
           ["lezhin", "lezhin"],
           ["pyccoma", "pyccoma"],
+          ["ridi", "ridi"],
         ])
     )
     .addIntegerOption((integer) =>

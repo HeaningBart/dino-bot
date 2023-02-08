@@ -7,6 +7,7 @@ import {
 } from "../rawhandler/lezhin";
 import { client } from "../client";
 import { randomUUID } from "node:crypto";
+import { getRidiChapter } from "../rawhandler/ridibooks";
 
 export const rawsQueue = new Queue<RawsPayload>(
   randomUUID(),
@@ -20,7 +21,7 @@ export type RawsPayload = {
   channel_id: string;
   role_id?: string;
   command: "getchapter" | "weekly";
-  type: "kakao" | "lezhin" | "pyccoma";
+  type: "kakao" | "lezhin" | "pyccoma" | "ridi";
 };
 
 rawsQueue.process(async (job, done) => {
@@ -72,5 +73,22 @@ rawsQueue.process(async (job, done) => {
       );
     }
   }
+
+  if (type === "ridi") {
+    const chapter = await getRidiChapter(kakaoId, chapter_number!);
+    const channel = client.channels.cache.get(channel_id);
+    if (channel?.isText()) {
+      command === "weekly"
+        ? await channel.send(
+            `Chapter of ${series_title}, <@&${role_id}>, <@&946250134042329158>: ${chapter}`
+          )
+        : await channel.send(`Chapter: ${chapter}`);
+
+      await channel.send(
+        `Don't forget to report your progress in <#794058643624034334> after you are done with your part.`
+      );
+    }
+  }
+
   done();
 });

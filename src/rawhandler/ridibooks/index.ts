@@ -1,140 +1,165 @@
-import { Browser } from "puppeteer";
-import puppeteer from 'puppeteer-extra';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-puppeteer.use(StealthPlugin())
-const { username, pwd } = require('../../../config.json');
-import { handleChapter } from '../index';
+const { username, pwd } = require("../../../config.json");
+import axios from "axios";
+import { load } from "cheerio";
+import { redis } from "../../redis";
+import { handleChapter } from "../";
+const { waifu: use_waifu } = require("../../../config.json");
 
-export async function start() {
-    const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'], headless: false });
-    return browser;
+type RidiAuth = {
+  access_token: string;
+  expires_in: number;
+  refresh_token_expires_in: number;
+  refresh_token: string;
+  scope: string;
+  token_type: string;
+  user: {
+    idx: number;
+  };
+};
+
+export async function logIn() {
+  const cookies = await redis.get("ridi_cookies");
+  if (cookies) return;
+
+  const auth_tokens = await axios.post(
+    "https://account.ridibooks.com/oauth2/token",
+    {
+      auto_login: true,
+      grant_type: "password",
+      password: pwd,
+      username: username,
+      client_id: "ePgbKKRyPvdAFzTvFg2DvrS7GenfstHdkQ2uvFNd",
+    }
+  );
+
+  const data = auth_tokens.data as RidiAuth;
+
+  await redis.set(
+    "ridi_cookies",
+    `PHPSESSID=00f1a4cf-18ea-4588-bbcc-5a7fa3924535;ridi-at=${data.access_token}; ridi-rt=${data.refresh_token};`,
+    "EX",
+    data.refresh_token_expires_in
+  );
+
+  return data as RidiAuth;
 }
 
+type RidiChapter = {
+  chapter_id: string;
+  price: string;
+  chapter_number: string;
+  service_type: string;
+};
 
-export async function logIn(browser: Browser) {
-    const page = await browser.newPage();
-    await page.setViewport({ width: 1080, height: 1080 });
-    console.log('eu estou aqui');
-    await page.goto('https://ridibooks.com/account/login');
-    await page.type('input[name="user_id"]', username);
-    await page.type('input[name="password"]', pwd);
-    await page.click('input[name="auto_login"]');
-    await page.click('button.login-button');
-    await page.waitForTimeout(5000);
-    await page.close();
+export async function getChaptersList(series_id: string | number) {
+  const cookies = await redis.get("ridi_cookies");
+
+  const html = await axios.get(`https://ridibooks.com/books/${series_id}`, {
+    headers: {
+      cookie: cookies!,
+    },
+  });
+
+  const $ = load(html.data);
+
+  const chapters: RidiChapter[] = [];
+
+  $(".js_series_book_list.detail_scalable_thumbnail").map((__, el) => {
+    chapters.push({
+      chapter_id: el.attribs["data-id"],
+      price: el.attribs["data-price"],
+      chapter_number: el.attribs["data-volume"],
+      service_type: el.attribs["data-service_type"],
+    });
+  });
+
+  return chapters;
 }
 
+type BuyChapterAuthRequest = {
+  payment_book_cash_and_point: {
+    method: string;
+    link: string;
+    parameters: string;
+    is_api: boolean;
+  };
+};
 
-export async function getLatestChapter(series_id: string | number, browser: Browser) {
-    const page = await browser.newPage();
-    await page.setViewport({ width: 1080, height: 1080 });
-    await page.goto(`https://ridibooks.com/books/${series_id}`);
-    const chapter_id = await page.evaluate(() => {
-        const chapters = document.querySelectorAll('li.js_series_book_list');
-        const id = chapters[chapters.length - 1].getAttribute('data-id');
-        return id;
+export async function buyChapter(chapter_id: string) {
+  const cookies = await redis.get("ridi_cookies");
+
+  const auth_request = (
+    await axios.get(
+      `https://ridibooks.com/api/payment/route/book?is_prefer_return_api_endpoint=true&pay_object=buy&b_ids%5B%5D=${chapter_id}&return_url=&return_url_at_fail=https%3A%2F%2Fridibooks.com%2Fbooks%2F3885010321&is_v2=true`,
+      {
+        headers: {
+          cookie: cookies!,
+        },
+      }
+    )
+  ).data as BuyChapterAuthRequest;
+
+  await axios.post(
+    auth_request.payment_book_cash_and_point.link,
+    auth_request.payment_book_cash_and_point.parameters,
+    {
+      headers: {
+        cookie: cookies!,
+        "content-type": "application/x-www-form-urlencoded",
+      },
+    }
+  );
+}
+
+type RidiUnparsedContent = {
+  book_id: string;
+  pages: Array<{ src: string }>;
+  success: boolean;
+  type: string;
+};
+
+export async function getChapterContent(chapter_id: string) {
+  const cookies = await redis.get("ridi_cookies");
+
+  const unparsed = (
+    await axios.get(`https://view.ridibooks.com/generate/${chapter_id}`, {
+      headers: {
+        cookie: cookies!,
+      },
     })
-    return chapter_id;
+  ).data as RidiUnparsedContent;
+
+  const images = unparsed.pages.map((value) => {
+    return value.src;
+  });
+
+  return images;
 }
 
-
-
-export async function downloadChapter(chapter_id: number | string, browser: Browser, series_name: string) {
-    const page = await browser.newPage();
-    await page.setViewport({ width: 1080, height: 1080 });
-    await page.goto(`https://view.ridibooks.com/books/${chapter_id}`, { waitUntil: 'domcontentloaded' });
-    try {
-        const chapter = await page.waitForResponse(`https://book-api.ridibooks.com/books/${chapter_id}`, { timeout: 5 * 1000 });
-        const chapter_response = await chapter.json();
-        const chapter_number = chapter_response.title.main.split(' ').find((element: string) => element.includes('화'))?.replaceAll(/\D/g, "");
-        console.log(chapter_number);
-        const response = await page.waitForResponse(`https://view.ridibooks.com/generate/${chapter_id}`, { timeout: 5 * 1000 });
-        const ridi_response = await response.json();
-        const ridi_files = ridi_response.pages;
-        console.log(ridi_files);
-        const files_url = ridi_files.map((file: any) => file.src);
-        console.log(files_url);
-        console.log(chapter_number);
-        const file_to_be_returned = await handleChapter(files_url, chapter_number, series_name, '');
-        console.log(file_to_be_returned);
-        return file_to_be_returned;
-    } catch (error) {
-        console.log('0 try didnt go well')
-        console.log(error);
+export async function getRidiChapter(
+  chapter_number: string | number,
+  series_id: string | number
+): Promise<string> {
+  try {
+    await logIn();
+    const chapters = await getChaptersList(series_id);
+    const chapter = chapters.find(
+      (chapter) => chapter.chapter_number == chapter_number
+    );
+    if (!chapter) throw new Error();
+    if (chapter.service_type == "rent") {
+      await buyChapter(chapter.chapter_id);
     }
-    await page.waitForNetworkIdle();
-    try {
-        await page.evaluate(() => {
-            const button = document.querySelector('div.next_volume_checkout_wrapper > div.checkout_contents_wrapper > div.checkout_buttons > button.button_size_40')
-            //@ts-ignore
-            if (button) button.click()
-        })
-    } catch (error) {
-
-    }
-    await page.waitForNetworkIdle();
-    try {
-        await page.evaluate(() => {
-            const button = document.querySelector('div.serial_checkout_wrapper > div.checkout_contents_wrapper > div.checkout_buttons > button.button_size_40')
-            //@ts-ignore
-            if (button) button.click()
-        })
-    } catch (error) {
-
-    }
-    await page.waitForNetworkIdle();
-    try {
-        await page.evaluate(() => {
-            const button = document.querySelector('div.serial_checkout_wrapper > div.checkout_contents_wrapper > div.checkout_buttons > button.button_size_40')
-            //@ts-ignore
-            if (button) button.click()
-        })
-    } catch (error) {
-
-    }
-    try {
-        const chapter = await page.waitForResponse(`https://book-api.ridibooks.com/books/${chapter_id}`, { timeout: 5 * 1000 });
-        const chapter_response = await chapter.json();
-        const chapter_number = chapter_response.title.main.split(' ').find((element: string) => element.includes('화'))?.replaceAll(/\D/g, "");
-        const response = await page.waitForResponse(`https://view.ridibooks.com/generate/${chapter_id}`, { timeout: 5 * 1000 });
-        const ridi_response = await response.json();
-        const ridi_files = ridi_response.pages;
-        console.log(ridi_files);
-        const files_url = ridi_files.map((file: any) => file.src);
-        console.log(files_url);
-        const file_to_be_returned = await handleChapter(files_url, chapter_number, series_name, '');
-        console.log(file_to_be_returned);
-        return file_to_be_returned;
-    } catch (error) {
-        console.log('first try didnt go well')
-        console.log(error);
-    }
-    await page.waitForNetworkIdle();
-    try {
-        const chapter = await page.waitForResponse(`https://book-api.ridibooks.com/books/${chapter_id}`, { timeout: 5 * 1000 });
-        const chapter_response = await chapter.json();
-        const chapter_number = chapter_response.title.main.split(' ').find((element: string) => element.includes('화'))?.replaceAll(/\D/g, "");
-        const response = await page.waitForResponse(`https://view.ridibooks.com/generate/${chapter_id}`, { timeout: 5 * 1000 });
-        const ridi_response = await response.json();
-        const ridi_files = ridi_response.pages;
-        console.log(ridi_files);
-        const files_url = ridi_files.map((file: any) => file.src);
-        console.log(files_url);
-        const file_to_be_returned = await handleChapter(files_url, chapter_number, series_name, '');
-        console.log(file_to_be_returned);
-        return file_to_be_returned;
-    } catch (error) {
-        console.log('second try didnt go well')
-        console.log(error);
-    }
+    const images = await getChapterContent(chapter.chapter_id);
+    const file_url = (await handleChapter(
+      images,
+      chapter_number.toString(),
+      series_id.toString(),
+      "",
+      use_waifu
+    ))!;
+    return file_url;
+  } catch (error) {
+    return "error";
+  }
 }
-
-
-// const test = async () => {
-//     const browser = await start();
-//     await logIn(browser);
-//     const chapter_id = await getLatestChapter(4291002928, browser);
-//     if (chapter_id) await downloadChapter(chapter_id, browser, 'terrarium-adventure');
-// }
-
-// test();
