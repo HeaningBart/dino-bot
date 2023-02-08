@@ -137,8 +137,8 @@ export async function getChapterContent(chapter_id: string) {
 }
 
 export async function getRidiChapter(
-  chapter_number: string | number,
-  series_id: string | number
+  series_id: string | number,
+  chapter_number: string | number
 ): Promise<string> {
   try {
     await logIn();
