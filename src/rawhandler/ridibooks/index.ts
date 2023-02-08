@@ -160,6 +160,7 @@ export async function getRidiChapter(
     ))!;
     return file_url;
   } catch (error) {
+    console.log(error);
     return "error";
   }
 }
