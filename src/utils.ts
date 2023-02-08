@@ -3,6 +3,7 @@ import { getLatestChapter } from "./rawhandler";
 import { Series } from "@prisma/client";
 import { client } from "./client";
 import fs from "fs/promises";
+const { expected_cron } = require("../config.json");
 
 export async function getWeeklyRaw(series: Series) {
   client.user?.setPresence({
@@ -46,12 +47,12 @@ export async function getWeeklyRaw(series: Series) {
 export async function setCron(minutes: number, reset?: boolean) {
   if (reset) {
     const read_config = JSON.parse(await fs.readFile("./config.json", "utf-8"));
-    read_config["cron"] = `01 10 * * *`;
+    read_config["cron"] = `01 ${expected_cron} * * *`;
     await fs.writeFile("./config.json", JSON.stringify(read_config));
     return;
   }
   const read_config = JSON.parse(await fs.readFile("./config.json", "utf-8"));
-  read_config["cron"] = `${minutes} 10 * * *`;
+  read_config["cron"] = `${minutes} ${expected_cron} * * *`;
   await fs.writeFile("./config.json", JSON.stringify(read_config));
   return;
 }
