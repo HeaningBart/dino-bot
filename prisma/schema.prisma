@@ -22,6 +22,7 @@ model Series {
   role      String   @db.VarChar(255)
   channel   String   @db.VarChar(255)
   priority  Int      @db.Integer()
+  type      String   @default("kakao") @db.VarChar(255)
 }
 
 model AllowedUsers {
