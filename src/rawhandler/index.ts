@@ -588,6 +588,7 @@ async function getSpecificChapter(
     const chapters = await getFullChaptersList(seriesId, "desc");
     console.log(chapters.length);
     console.log(seriesId, chapter_number, title);
+    console.log(chapters);
     const chapter = chapters.find(
       (chapter) => chapter.chapter_number == chapter_number
     );
@@ -645,8 +646,6 @@ async function getSpecificChapter(
   } catch (error: any) {
     console.log("This is error");
     console.log(error);
-    console.log("This is error data");
-    console.log(error.response.data);
   }
 }
 
