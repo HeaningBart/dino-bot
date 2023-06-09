@@ -26,7 +26,7 @@ export async function logIn(browser: Browser) {
   console.log("eu estou aqui");
   try {
     await page.goto("https://page.kakao.com/", { timeout: 15000 });
-  } catch (error) {}
+  } catch (error) { }
   await page.setCookie({
     name: "_kpdid",
     value: device_id,
@@ -34,7 +34,7 @@ export async function logIn(browser: Browser) {
     httpOnly: true,
     path: "/",
   });
-  await page.click("div.pr-16pxr", {
+  await page.click("button.pr-16pxr", {
     clickCount: 2000,
   });
 
@@ -58,14 +58,14 @@ export async function logIn(browser: Browser) {
     try {
       try {
         await newPage.solveRecaptchas();
-      } catch (error) {}
+      } catch (error) { }
       await newPage.keyboard.press("Enter");
       await newPage.waitForTimeout(5000);
       try {
         await newPage.solveRecaptchas();
-      } catch (error) {}
+      } catch (error) { }
       await newPage.keyboard.press("Enter");
-    } catch (e) {}
+    } catch (e) { }
   }
 
   try {

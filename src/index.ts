@@ -42,7 +42,7 @@ process.on("exit", async () => {
 // (async () => {
 //   try {
 //     const daily_series = await prisma.series.findMany({
-//       where: { cron: "sunday", weekly: true },
+//       where: { cron: "monday", weekly: true },
 //       orderBy: { priority: "desc" },
 //     });
 //     for (let i = 0; i <= daily_series.length - 1; i++) {
@@ -54,8 +54,6 @@ process.on("exit", async () => {
 //         await channel.send("Stack: " + error);
 //       }
 //     }
-
-//     await setCron(1, true);
 //   } catch (error) {
 //     console.log(error);
 //   }
