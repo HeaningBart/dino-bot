@@ -451,6 +451,7 @@ async function getTickets(seriesId: string | number, cookies: string) {
     {
       headers: {
         Cookie: cookies,
+        Referer: 'https://page.kakao.com/content'
       },
     }
   );
