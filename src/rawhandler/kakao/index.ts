@@ -60,7 +60,7 @@ export async function logIn(browser: Browser) {
         await newPage.solveRecaptchas();
       } catch (error) { }
       await newPage.keyboard.press("Enter");
-      await newPage.waitForTimeout(5000);
+      await newPage.waitForTimeout(10000);
       try {
         await newPage.solveRecaptchas();
       } catch (error) { }
