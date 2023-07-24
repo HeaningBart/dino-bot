@@ -1,7 +1,10 @@
 import Redis from "ioredis";
 import { rawsQueue } from "../queue";
 
-const redis = new Redis({ reconnectOnError: () => false });
+const redis = new Redis({
+  db: 1,
+  reconnectOnError: () => false
+});
 
 redis.on("connection", () => {
   console.log("Redis conectando...");
