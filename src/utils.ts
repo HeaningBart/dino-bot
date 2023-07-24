@@ -16,9 +16,9 @@ export async function getWeeklyRaw(series: Series) {
       },
     ],
   });
-  const channel = client.channels.cache.get(series.channel) as TextChannel;
+  const channel = client.channels.cache.get('1133083013970931772') as TextChannel;
   const branch_channel = client.channels.cache.get(
-    "1075036425424216104"
+    "1133083013970931772"
   ) as TextChannel;
   const role = series.role;
   const file = await getLatestChapter(series.kakaoId, series.slug);
