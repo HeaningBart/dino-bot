@@ -168,7 +168,7 @@ export async function getLatestChapter(
   try {
     await fs.mkdir(waifu_directory, { recursive: true });
     await exec(
-      `python3.9 src/rawhandler/SmartStitchConsole.py -i "${directory}/output" -H 12000 -cw 800 -w 2 -t ".jpeg" -s 90`
+      `py src/rawhandler/SmartStitchConsole.py -i "${directory}/output" -H 12000 -cw 800 -w 2 -t ".jpeg" -s 90`
     );
     console.log("All images have been stitched.");
 
@@ -331,7 +331,7 @@ export async function getSpecificChapter(
   try {
     await fs.mkdir(waifu_directory, { recursive: true });
     // await exec(
-    //   `python3.9 src/rawhandler/SmartStitchConsole.py -i "${directory}/output" -H 12000 -cw 800 -w 2 -t ".jpeg" -s 90`
+    //   `py src/rawhandler/SmartStitchConsole.py -i "${directory}/output" -H 12000 -cw 800 -w 2 -t ".jpeg" -s 90`
     // );
     // console.log("All images have been stitched.");
 

@@ -35,28 +35,4 @@ process.on("exit", async () => {
   rawsQueue.close();
 });
 
-// logInAndSetCookies()
-//   .then(() => "Tudo certo!")
-//   .catch((e) => console.log(e));
-
-// (async () => {
-//   try {
-//     const daily_series = await prisma.series.findMany({
-//       where: { cron: "monday", weekly: true },
-//       orderBy: { priority: "desc" },
-//     });
-//     for (let i = 0; i <= daily_series.length - 1; i++) {
-//       try {
-//         await getWeeklyRaw(daily_series[i]);
-//       } catch (error) {
-//         const channel = client.channels.cache.get(log_channel) as TextChannel;
-//         await channel.send("Error while getting the raws, ping the developer.");
-//         await channel.send("Stack: " + error);
-//       }
-//     }
-//   } catch (error) {
-//     console.log(error);
-//   }
-// })();
-
 export { client };
