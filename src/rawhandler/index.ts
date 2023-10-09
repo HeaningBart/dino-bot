@@ -53,7 +53,7 @@ async function handleChapter(
     }
 
     await exec(
-      `py src/rawhandler/SmartStitchConsole.py -i "${directory}" -H 12000 -cw 800 -w 2 -t ".jpeg" -s 90`
+      `python3.9 src/rawhandler/SmartStitchConsole.py -i "${directory}" -H 12000 -cw 800 -w 2 -t ".jpeg" -s 90`
     );
     console.log("All images have been stitched.");
 
@@ -301,7 +301,7 @@ export async function processNaver(
       : await exec(`7z e "./${files[0]}"`, { cwd: `./${directory}` });
 
     await exec(
-      `py src/rawhandler/SmartStitchConsole.py -i "${directory}" -H 12000 -cw 800 -w 2 -t ".jpeg" -s 90`
+      `python3.9 src/rawhandler/SmartStitchConsole.py -i "${directory}" -H 12000 -cw 800 -w 2 -t ".jpeg" -s 90`
     );
 
     await fs.mkdir(`./${directory}/${name}`, { recursive: true });
