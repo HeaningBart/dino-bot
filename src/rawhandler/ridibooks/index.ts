@@ -40,9 +40,7 @@ export async function logIn() {
 
   await redis.set(
     'ridi_cookies',
-    `user_device_type=PC; ridi_auth=; ridibooks.connect.sid=s%3Aicxqe0oklZvvM-u4vZnDHuY4jkG3KFwn.As%2FC7Et%2B8eGgmHHjSz4zWouP2g5jlzE73MgnKq%2BGI4Y; fingerprint=17e1d6abdc37b9d9d22226422959f24f; _fwb=221AhaGTDQrT4nYy0k7xprq.1711141962082; _tt_enable_cookie=1; _ttp=J1cm90mVRwbCL2NywEsMUjSvmu9; _fbp=fb.1.1711141963127.1751385652; ab.storage.deviceId.1440c75a-6f4b-48d9-8e69-8d6fd78a9fbc=%7B%22g%22%3A%221b89026e-2903-4256-c86b-6df53353f5a4%22%2C%22c%22%3A1711141963160%2C%22l%22%3A1711141963160%7D; PHPSESSID=5364f845-b71d-4ffc-ae8c-90108f08acab; ridi-al=1;PHPSESSID=00f1a4cf-18ea-4588-bbcc-5a7fa3924535;ridi-at=${data.data.access_token}; ridi-rt=${data.data.refresh_token};`,
-    'EX',
-    data.data.refresh_token_expires_in
+    `user_device_type=PC; ridi_auth=; ridibooks.connect.sid=s%3Aicxqe0oklZvvM-u4vZnDHuY4jkG3KFwn.As%2FC7Et%2B8eGgmHHjSz4zWouP2g5jlzE73MgnKq%2BGI4Y; fingerprint=17e1d6abdc37b9d9d22226422959f24f; _fwb=221AhaGTDQrT4nYy0k7xprq.1711141962082; _tt_enable_cookie=1; _ttp=J1cm90mVRwbCL2NywEsMUjSvmu9; _fbp=fb.1.1711141963127.1751385652; ab.storage.deviceId.1440c75a-6f4b-48d9-8e69-8d6fd78a9fbc=%7B%22g%22%3A%221b89026e-2903-4256-c86b-6df53353f5a4%22%2C%22c%22%3A1711141963160%2C%22l%22%3A1711141963160%7D; PHPSESSID=5364f845-b71d-4ffc-ae8c-90108f08acab; ridi-al=1;PHPSESSID=00f1a4cf-18ea-4588-bbcc-5a7fa3924535;ridi-at=${data.data.access_token}; ridi-rt=${data.data.refresh_token};`
   )
 
   return data as RidiAuth
