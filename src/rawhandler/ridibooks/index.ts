@@ -140,6 +140,8 @@ export async function getChapterContent(chapter_id: string) {
     await axios.get(`https://view.ridibooks.com/generate/${chapter_id}`, {
       headers: {
         cookie: cookies!,
+        origin: 'https://view.ridibooks.com',
+        Referer: 'https://view.ridibooks.com',
       },
     })
   ).data as RidiUnparsedContent
