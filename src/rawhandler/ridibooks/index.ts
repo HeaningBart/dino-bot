@@ -136,13 +136,17 @@ export async function getChapterContent(chapter_id: string) {
   console.log(cookies)
 
   const unparsed = (
-    await axios.get(`https://view.ridibooks.com/generate/${chapter_id}`, {
-      headers: {
-        cookie: cookies!,
-        origin: 'https://view.ridibooks.com',
-        Referer: 'https://view.ridibooks.com',
-      },
-    })
+    await axios.post(
+      `https://ridibooks.com/api/web-viewer/generate`,
+      { book_id: chapter_id },
+      {
+        headers: {
+          cookie: cookies!,
+          origin: 'https://view.ridibooks.com',
+          Referer: 'https://view.ridibooks.com',
+        },
+      }
+    )
   ).data as RidiUnparsedContent
 
   console.log(unparsed)
@@ -165,7 +169,11 @@ export async function getRidiChapter(
       (chapter) => chapter.chapter_number == chapter_number
     )
     if (!chapter) throw new Error()
-    await buyChapter(chapter.chapter_id)
+    try {
+      await buyChapter(chapter.chapter_id)
+    } catch (error) {
+      console.log(error)
+    }
     const images = await getChapterContent(chapter.chapter_id)
     const file_url = (await handleChapter(
       images,
