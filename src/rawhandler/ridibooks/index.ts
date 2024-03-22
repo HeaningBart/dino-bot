@@ -165,9 +165,7 @@ export async function getRidiChapter(
       (chapter) => chapter.chapter_number == chapter_number
     )
     if (!chapter) throw new Error()
-    if (chapter.service_type == 'rent') {
-      await buyChapter(chapter.chapter_id)
-    }
+    await buyChapter(chapter.chapter_id)
     const images = await getChapterContent(chapter.chapter_id)
     const file_url = (await handleChapter(
       images,
