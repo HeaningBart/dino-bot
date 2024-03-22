@@ -64,16 +64,16 @@ export async function getChaptersList(series_id: string | number) {
 
   const chapters: RidiChapter[] = []
 
-  console.log($('li.js_series_book_list.detail_scalable_thumbnail').length)
-
-  $('li.js_series_book_list.detail_scalable_thumbnail').map((__, el) => {
-    chapters.push({
-      chapter_id: el.attribs['data-id'],
-      price: el.attribs['data-price'],
-      chapter_number: el.attribs['data-volume'],
-      service_type: el.attribs['data-service_type'],
-    })
-  })
+  Array.from($('li.js_series_book_list.detail_scalable_thumbnail')).map(
+    (el) => {
+      chapters.push({
+        chapter_id: el.attribs['data-id'],
+        price: el.attribs['data-price'],
+        chapter_number: el.attribs['data-volume'],
+        service_type: el.attribs['data-service_type'],
+      })
+    }
+  )
 
   return chapters
 }
