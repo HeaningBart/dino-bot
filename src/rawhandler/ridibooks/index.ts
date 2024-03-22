@@ -19,7 +19,7 @@ type RidiAuth = {
 
 export async function logIn() {
   const cookies = await redis.get('ridi_cookies')
-  if (cookies) return
+  console.log(`cookies: ${cookies}`)
 
   const auth_tokens = await axios.post(
     'https://account.ridibooks.com/oauth2/token',
@@ -31,6 +31,8 @@ export async function logIn() {
       client_id: 'ePgbKKRyPvdAFzTvFg2DvrS7GenfstHdkQ2uvFNd',
     }
   )
+
+  console.log(auth_tokens)
 
   const data = auth_tokens.data as RidiAuth
 

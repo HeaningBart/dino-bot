@@ -75,7 +75,6 @@ rawsQueue.process(async (job, done) => {
   }
 
   if (type === 'ridi') {
-    await logIn()
     const chapter = await getRidiChapter(kakaoId, chapter_number!)
     const channel = client.channels.cache.get(channel_id)
     if (channel?.isText()) {
