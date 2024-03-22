@@ -126,7 +126,9 @@ export async function buyChapter(chapter_id: string) {
 
 type RidiUnparsedContent = {
   book_id: string
-  pages: Array<{ src: string }>
+  data: {
+    pages: Array<{ src: string }>
+  }
   success: boolean
   type: string
 }
@@ -142,7 +144,9 @@ export async function getChapterContent(chapter_id: string) {
     })
   ).data as RidiUnparsedContent
 
-  const images = unparsed.pages.map((value) => {
+  console.log(unparsed)
+
+  const images = unparsed.data.pages.map((value) => {
     return value.src
   })
 
