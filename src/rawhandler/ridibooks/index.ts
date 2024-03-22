@@ -71,10 +71,10 @@ export async function getChaptersList(series_id: string | number) {
   console.log(html_chapters)
 
   for (const chapter of html_chapters) {
-    const chapter_id = $(chapter).attr('data-bid')!
+    const chapter_id = $(chapter).attr('data-id')!
     const price = $(chapter).attr('data-price')!
-    const chapter_number = $(chapter).attr('data-chapter-number')!
-    const service_type = $(chapter).attr('data-service-type')!
+    const chapter_number = $(chapter).attr('data-volume')!
+    const service_type = $(chapter).attr('data-service_type')!
 
     chapters.push({
       chapter_id,
