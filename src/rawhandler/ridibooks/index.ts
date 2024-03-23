@@ -147,7 +147,9 @@ export async function buyChapter(chapter_id: string) {
 
   const first_request_data = first_request as BuyChapterAuthRequest
 
-  await fetch(
+  console.log(first_request_data)
+
+  const response2 = await fetch(
     `${first_request_data.payment_book_cash_and_point.link}?${first_request_data.payment_book_cash_and_point.parameters}`,
 
     {
@@ -158,6 +160,8 @@ export async function buyChapter(chapter_id: string) {
       },
     }
   )
+
+  console.log(await response2.json())
 }
 
 type RidiUnparsedContent = {
