@@ -169,6 +169,7 @@ export async function getRidiChapter(
       await browser.close()
       await redis.set('ridi', cookies, 'EX', 259200)
     }
+    console.log(cookies)
     const chapters = await getChaptersList(series_id)
     const chapter = chapters.find(
       (chapter) => chapter.chapter_number == chapter_number
