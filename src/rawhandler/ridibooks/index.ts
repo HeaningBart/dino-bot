@@ -149,8 +149,11 @@ export async function buyChapter(chapter_id: string) {
 
   console.log(first_request_data)
 
-  const response2 = await fetch(
-    `${first_request_data.payment_book_cash_and_point.link}?${first_request_data.payment_book_cash_and_point.parameters}`,
+  const response2 = await axios.post(
+    `${first_request_data.payment_book_cash_and_point.link}`,
+    new URLSearchParams(
+      first_request_data.payment_book_cash_and_point.parameters
+    ),
 
     {
       headers: {
@@ -161,7 +164,7 @@ export async function buyChapter(chapter_id: string) {
     }
   )
 
-  console.log(await response2.json())
+  console.log(response2)
 }
 
 type RidiUnparsedContent = {
