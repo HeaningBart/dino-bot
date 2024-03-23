@@ -182,7 +182,10 @@ export async function getRidiChapter(
     if (!chapter) throw new Error()
     try {
       await buyChapter(chapter.chapter_id)
-    } catch (error) {}
+    } catch (error) {
+      console.log(error)
+    }
+    console.log(chapter)
     const images = await getChapterContent(chapter.chapter_id)
     const file_url = (await handleChapter(
       images,
