@@ -154,8 +154,6 @@ export async function getChapterContent(chapter_id: string) {
       {
         headers: {
           cookie: cookies!,
-          origin: 'https://view.ridibooks.com',
-          Referer: 'https://view.ridibooks.com',
         },
       }
     )
@@ -186,11 +184,7 @@ export async function getRidiChapter(
       (chapter) => chapter.chapter_number == chapter_number
     )
     if (!chapter) throw new Error()
-    try {
-      await buyChapter(chapter.chapter_id)
-    } catch (error) {
-      console.log(error)
-    }
+
     const images = await getChapterContent(chapter.chapter_id)
     const file_url = (await handleChapter(
       images,
