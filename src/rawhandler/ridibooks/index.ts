@@ -164,9 +164,7 @@ export async function getRidiChapter(
   try {
     var cookies = await redis.get('ridi')
     if (!cookies) {
-      const browser = await start()
       cookies = await logIn()
-      await browser.close()
       await redis.set('ridi', cookies, 'EX', 259200)
     }
     console.log(cookies)
