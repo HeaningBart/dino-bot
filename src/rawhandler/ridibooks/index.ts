@@ -103,10 +103,27 @@ export async function buyChapter(chapter_id: string) {
   const cookies = await redis.get('ridi')
   console.log(cookies)
 
-  const first_request = await axios.post(
+  const request = await axios.post(
     `https://ridibooks.com/api/payment/route/book?${new URLSearchParams({
       'b_ids[]': chapter_id,
       is_prefer_return_api_endpoint: 'false',
+      pay_object: 'rent',
+      return_url_at_fail:
+        'https://ridibooks.com/books/1746021079?type=rent#formSeriesList',
+      return_url: '',
+      is_v2: 'true',
+    }).toString()}`,
+    {
+      headers: {
+        cookie: cookies!,
+      },
+    }
+  )
+
+  const first_request = await axios.post(
+    `https://ridibooks.com/api/payment/route/book?${new URLSearchParams({
+      'b_ids[]': chapter_id,
+      is_prefer_return_api_endpoint: 'true',
       pay_object: 'rent',
       return_url_at_fail:
         'https://ridibooks.com/books/1746021079?type=rent#formSeriesList',
