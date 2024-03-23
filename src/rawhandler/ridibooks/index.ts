@@ -195,7 +195,8 @@ export async function getRidiChapter(
     ))!
     return file_url
   } catch (error) {
-    console.log(error)
+    if (error && (error as any).data && (error as any).data.error)
+      console.log((error as any).data.error)
     return 'error'
   }
 }
