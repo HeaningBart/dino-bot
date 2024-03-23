@@ -64,26 +64,25 @@ export async function getSeriesInfo(comic_slug: string): Promise<LezhinSeries> {
 
   const url = `https://www.lezhin.com/ko/comic/${comic_slug}`
 
-  console.log(url)
-
-  const html = await (
-    await fetch(`https://www.lezhin.com/ko/comic/${comic_slug}`, {
+  const html = await axios.get(
+    `https://www.lezhin.com/ko/comic/${comic_slug}`,
+    {
       headers: {
-        Authorization: 'Bearer ' + bearer,
         cookie,
+        Accept:
+          'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
       },
-    })
-  ).text()
+    }
+  )
 
-  const first_index = html.indexOf('product: ')
-  const last_index = html.indexOf("departure: '',")
-  const parsed = html
+  const first_index = html.data.indexOf('product: ')
+  const last_index = html.data.indexOf("departure: '',")
+  const parsed = html.data
     .slice(first_index, last_index)
     .replaceAll('\n', '')
     .replace('product: ', '')
   const last_dot = parsed.lastIndexOf(',')
   const parsed_html = JSON.parse(parsed.slice(0, last_dot))
-  console.log(parsed_html)
   return parsed_html
 }
 
