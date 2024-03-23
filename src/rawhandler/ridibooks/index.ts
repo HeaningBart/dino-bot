@@ -5,6 +5,7 @@ import { redis } from '../../redis'
 import { handleChapter } from '../'
 const { waifu: use_waifu } = require('../../../config.json')
 import puppeteer from 'puppeteer'
+import fetch from 'node-fetch'
 
 type RidiAuth = {
   access_token: string
@@ -161,17 +162,16 @@ export async function getChapterContent(chapter_id: string) {
   const cookies = await redis.get('ridi')
   console.log(cookies)
 
-  const unparsed = (
-    await axios.post(
-      `https://ridibooks.com/api/web-viewer/generate`,
-      { book_id: chapter_id },
-      {
-        headers: {
-          cookie: cookies!,
-        },
-      }
-    )
-  ).data as RidiUnparsedContent
+  const unparsed = (await (
+    await fetch(`https://ridibooks.com/api/web-viewer/generate`, {
+      method: 'POST',
+      headers: {
+        cookie: cookies!,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ book_id: chapter_id }),
+    })
+  ).json()) as RidiUnparsedContent
 
   console.log(unparsed)
 
