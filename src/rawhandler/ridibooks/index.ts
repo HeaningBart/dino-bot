@@ -103,47 +103,51 @@ export async function buyChapter(chapter_id: string) {
   const cookies = await redis.get('ridi')
   console.log(cookies)
 
-  const request = await axios.post(
-    `https://ridibooks.com/api/payment/route/book?${new URLSearchParams({
-      'b_ids[]': chapter_id,
-      is_prefer_return_api_endpoint: 'false',
-      pay_object: 'rent',
-      return_url_at_fail:
-        'https://ridibooks.com/books/1746021079?type=rent#formSeriesList',
-      return_url: '',
-      is_v2: 'true',
-    }).toString()}`,
-    {
-      headers: {
-        cookie: cookies!,
-        Origin: `https://ridibooks.com`,
-        referer: `https://ridibooks.com/books/1746021079?type=rent`,
-      },
-    }
-  )
+  const request = await (
+    await fetch(
+      `https://ridibooks.com/api/payment/route/book?${new URLSearchParams({
+        'b_ids[]': chapter_id,
+        is_prefer_return_api_endpoint: 'false',
+        pay_object: 'rent',
+        return_url_at_fail:
+          'https://ridibooks.com/books/1746021079?type=rent#formSeriesList',
+        return_url: '',
+        is_v2: 'true',
+      }).toString()}`,
+      {
+        headers: {
+          cookie: cookies!,
+          Origin: `https://ridibooks.com`,
+          referer: `https://ridibooks.com/books/1746021079?type=rent`,
+        },
+      }
+    )
+  ).json()
 
-  const first_request = await axios.post(
-    `https://ridibooks.com/api/payment/route/book?${new URLSearchParams({
-      'b_ids[]': chapter_id,
-      is_prefer_return_api_endpoint: 'true',
-      pay_object: 'rent',
-      return_url_at_fail:
-        'https://ridibooks.com/books/1746021079?type=rent#formSeriesList',
-      return_url: '',
-      is_v2: 'true',
-    }).toString()}`,
-    {
-      headers: {
-        cookie: cookies!,
-        Origin: `https://ridibooks.com`,
-        referer: `https://ridibooks.com/books/1746021079?type=rent`,
-      },
-    }
-  )
+  const first_request = await (
+    await fetch(
+      `https://ridibooks.com/api/payment/route/book?${new URLSearchParams({
+        'b_ids[]': chapter_id,
+        is_prefer_return_api_endpoint: 'true',
+        pay_object: 'rent',
+        return_url_at_fail:
+          'https://ridibooks.com/books/1746021079?type=rent#formSeriesList',
+        return_url: '',
+        is_v2: 'true',
+      }).toString()}`,
+      {
+        headers: {
+          cookie: cookies!,
+          Origin: `https://ridibooks.com`,
+          referer: `https://ridibooks.com/books/1746021079?type=rent`,
+        },
+      }
+    )
+  ).json()
 
   const first_request_data = first_request.data as BuyChapterAuthRequest
 
-  await axios.post(
+  await fetch(
     `${first_request_data.payment_book_cash_and_point.link}?${first_request_data.payment_book_cash_and_point.parameters}`,
 
     {
