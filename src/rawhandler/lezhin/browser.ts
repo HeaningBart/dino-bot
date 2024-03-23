@@ -82,9 +82,9 @@ export async function startup() {
 
   const cookies = await redis.get('lezhin_cookies')
 
-  if (!bearer_token || !user_id || !cookies) {
-    const browser = await start()
-    await logIn(browser)
-    await browser.close()
-  }
+  console.log(bearer_token, user_id, cookies)
+
+  const browser = await start()
+  await logIn(browser)
+  await browser.close()
 }
