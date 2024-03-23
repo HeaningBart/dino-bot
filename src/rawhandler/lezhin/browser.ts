@@ -68,6 +68,8 @@ export async function logIn(browser: Browser) {
 
   await redis.set('lezhin_cookies', filtered_cookies)
 
+  console.log(filtered_cookies)
+
   console.log('Cookies are set.')
 
   return bearer_token
