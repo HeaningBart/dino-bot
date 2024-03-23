@@ -50,7 +50,7 @@ export async function logIn(browser: Browser) {
   const new_cookies = cookies.map((item) => `${item.name}=${item.value};`)
   const filtered_cookies = new_cookies.join(' ')
 
-  await redis.set('lezhin_cookies', filtered_cookies)
+  await redis.set('lezhin_cookies', filtered_cookies, 'EX', 60 * 60 * 24)
 
   console.log(filtered_cookies)
 
@@ -58,14 +58,8 @@ export async function logIn(browser: Browser) {
 }
 
 export async function startup() {
-  const bearer_token = await redis.get('lezhin_bearer')
-
-  const user_id = await redis.get('lezhin_id')
-
   const cookies = await redis.get('lezhin_cookies')
-
-  console.log(bearer_token, user_id, cookies)
-
+  if (cookies) return
   const browser = await start()
   await logIn(browser)
   await browser.close()
