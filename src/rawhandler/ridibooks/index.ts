@@ -123,10 +123,8 @@ export async function buyChapter(chapter_id: string) {
   const first_request_data = first_request.data as BuyChapterAuthRequest
 
   await axios.post(
-    first_request_data.payment_book_cash_and_point.link,
-    new URLSearchParams(
-      first_request_data.payment_book_cash_and_point.parameters
-    ),
+    `${first_request_data.payment_book_cash_and_point.link}?${first_request_data.payment_book_cash_and_point.parameters}`,
+
     {
       headers: {
         cookie: cookies!,
