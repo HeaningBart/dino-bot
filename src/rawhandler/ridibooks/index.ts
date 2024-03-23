@@ -145,7 +145,7 @@ export async function buyChapter(chapter_id: string) {
     )
   ).json()
 
-  const first_request_data = first_request.data as BuyChapterAuthRequest
+  const first_request_data = first_request as BuyChapterAuthRequest
 
   await fetch(
     `${first_request_data.payment_book_cash_and_point.link}?${first_request_data.payment_book_cash_and_point.parameters}`,
