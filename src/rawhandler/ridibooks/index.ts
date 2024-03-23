@@ -116,6 +116,8 @@ export async function buyChapter(chapter_id: string) {
     {
       headers: {
         cookie: cookies!,
+        Origin: `https://ridibooks.com`,
+        referer: `https://ridibooks.com/books/1746021079?type=rent`,
       },
     }
   )
@@ -133,6 +135,8 @@ export async function buyChapter(chapter_id: string) {
     {
       headers: {
         cookie: cookies!,
+        Origin: `https://ridibooks.com`,
+        referer: `https://ridibooks.com/books/1746021079?type=rent`,
       },
     }
   )
@@ -145,6 +149,8 @@ export async function buyChapter(chapter_id: string) {
     {
       headers: {
         cookie: cookies!,
+        Origin: `https://ridibooks.com`,
+        referer: `https://ridibooks.com/books/1746021079?type=rent`,
       },
     }
   )
