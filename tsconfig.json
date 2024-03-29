@@ -8,6 +8,7 @@
       "DOM.Iterable",
     ],
     "allowJs": true,
+    "module": "es2022",
     "skipLibCheck": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
