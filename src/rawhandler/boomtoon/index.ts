@@ -90,14 +90,7 @@ export async function get_chapter_state(
   return response.data.data
 }
 
-export async function log_purchase_transaction(chapter_id: number) {
-  await BoomToonAPI.post(
-    'https://www.bomtoon.com/api/balcony-api-v2/contents/purchase',
-    JSON.parse(
-      `{"logType":"trace","platform":"BOMTOON_COM","ip":"","date":${Date.now()},"url":"/purchase","action":"post purchase","data":{"id":${chapter_id},"purchaseType":"POSSESSION","isMobile":false}}`
-    )
-  )
-}
+export async function log_purchase_transaction(chapter_id: number) {}
 
 export async function purchase_chapter(chapter_id: number) {
   await log_purchase_transaction(chapter_id)
