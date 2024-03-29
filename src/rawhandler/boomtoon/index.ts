@@ -28,6 +28,9 @@ export async function start() {
 }
 
 export async function logIn() {
+  const bt_cookies = await redis.get('bt')
+  if (bt_cookies) return
+
   const browser = await start()
   const page = await browser.newPage()
   await page.goto('https://www.bomtoon.com/user/login')
@@ -144,6 +147,7 @@ export async function getBoomToonChapter(
       images,
       chapter_number.toString(),
       series.alias,
+      '',
       use_waifu
     )
     return file_url
