@@ -82,7 +82,7 @@ export async function get_chapter_state(
   chapter_alias: string
 ) {
   const response = await BoomToonAPI.get<EpisodeStateData>(
-    `https://www.bomtoon.com/api/balcony-api-v2/contents/viewer/${series_slug}/${chapter_alias}?isNotLoginAdult=false`
+    `https://www.bomtoon.com/api/balcony-api-v2/contents/price/${series_slug}/${chapter_alias}?isNotLoginAdult=false`
   )
   return response.data.data
 }
