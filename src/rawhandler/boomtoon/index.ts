@@ -131,6 +131,7 @@ export async function getBoomToonChapter(
       series_id.toString(),
       chapter.alias
     )
+    console.log(chapter_state)
     if (!chapter_state.isAvailable) {
       await purchase_chapter(chapter.id)
     }
