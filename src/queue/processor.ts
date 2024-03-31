@@ -1,10 +1,10 @@
 import { SandboxedJob } from 'bullmq'
-import { RawsPayload } from './raws'
-import { getLatestChapter, getSpecificChapter } from '../rawhandler'
-import { getLezhinSpecificChapter } from '../rawhandler/lezhin'
-import { client } from '../client'
-import { getRidiChapter, logIn } from '../rawhandler/ridibooks'
-import { getBoomToonChapter } from '../rawhandler/boomtoon'
+import { RawsPayload } from './raws.js'
+import { getLatestChapter, getSpecificChapter } from '../rawhandler/index.js'
+import { getLezhinSpecificChapter } from '../rawhandler/lezhin/index.js'
+import { client } from '../client/index.js'
+import { getRidiChapter, logIn } from '../rawhandler/ridibooks/index.js'
+import { getBoomToonChapter } from '../rawhandler/boomtoon/index.js'
 
 export default async function (job: SandboxedJob<RawsPayload>) {
   const {

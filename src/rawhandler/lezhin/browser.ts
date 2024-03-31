@@ -2,7 +2,7 @@ import { Browser } from 'puppeteer'
 import puppeteer from 'puppeteer-extra'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import RecaptchaPlugin from 'puppeteer-extra-plugin-recaptcha'
-import { redis } from '../../redis'
+import { redis } from '../../redis/index.js'
 
 puppeteer.use(StealthPlugin())
 puppeteer.use(
@@ -12,10 +12,8 @@ puppeteer.use(
   })
 )
 
-const {
-  lezhin_email: email,
-  lezhin_password: password,
-} = require('../../../config.json')
+const email = process.env.lezhin_email!
+const password = process.env.lezhin_password!
 
 export async function start() {
   const browser = await puppeteer.launch({

@@ -1,10 +1,8 @@
 import { SlashCommandBuilder } from '@discordjs/builders'
 import { CommandInteraction } from 'discord.js'
-import { toUrl } from '../../utils'
-import { getSpecificChapter as getChapter } from '../../rawhandler'
 
-import { prisma } from '../../database'
-import { rawsQueue } from '../../queue/raws'
+import { prisma } from '../../database/index.js'
+import { rawsQueue } from '../../queue/raws.js'
 const allowedUsers = [
   '397857749938995201',
   '345938621137944577',
@@ -16,7 +14,7 @@ const allowedUsers = [
 
 type RawsWebsites = 'kakao' | 'lezhin' | 'pyccoma' | 'ridi' | 'boomtoon'
 
-module.exports = {
+export default {
   data: new SlashCommandBuilder()
     .setName('getchapter')
     .setDescription('Download a chapter with the number specified.')

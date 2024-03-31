@@ -1,9 +1,10 @@
-const { bt_username, bt_pwd } = require('../../../config.json')
+const bt_username = process.env.bt_username!
+const bt_pwd = process.env.bt_pwd!
 import axios from 'axios'
 import { load } from 'cheerio'
-import { redis } from '../../redis'
-import { handleChapter } from '../'
-const { waifu: use_waifu } = require('../../../config.json')
+import { redis } from '../../redis/index.js'
+import { handleChapter } from '../index.js'
+const use_waifu = JSON.parse(process.env.waifu!)
 import puppeteer from 'puppeteer'
 import fetch from 'node-fetch'
 import {

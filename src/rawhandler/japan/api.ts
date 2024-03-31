@@ -1,23 +1,19 @@
-import axios from "axios";
-const {
-  jp_login,
-  jp_pwd,
-  vpn_user,
-  vpn_password,
-  vpn_url,
-} = require("../../../config.json");
+import axios from 'axios'
+
+const vpn_user = process.env.vpn_user!
+const vpn_password = process.env.vpn_password!
 
 function createPyccomaAPI() {
   const api = axios.create({
     proxy: {
-      host: "jp547.nordvpn.com",
+      host: 'jp547.nordvpn.com',
       port: 89,
       auth: {
         username: vpn_user,
         password: vpn_password,
       },
-      protocol: "https",
+      protocol: 'https',
     },
-  });
-  return api;
+  })
+  return api
 }

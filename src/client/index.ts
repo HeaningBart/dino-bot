@@ -8,9 +8,12 @@ import {
   MessageEmbed,
   TextChannel,
 } from 'discord.js'
-const { token } = require('../../config.json')
+const token = process.env.token!
 import fs from 'fs/promises'
 import path from 'path'
+import { fileURLToPath } from 'url'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 type customClient = Client<boolean> & { commands: Collection<any, any> }
 
@@ -35,12 +38,13 @@ client.on('ready', async () => {
   try {
     console.log('Getting the command handling ready...')
     const commands_path = path.join(__dirname, 'commands')
-    const commands_files = (await fs.readdir(commands_path)).filter((file) =>
-      file.endsWith('.ts')
+    const commands_files = (await fs.readdir(commands_path)).filter(
+      (file) => file.endsWith('.ts') || file.endsWith('.js')
     )
     for (const file of commands_files) {
       const file_path = path.join(commands_path, file)
-      const command = (await import(file_path)) as commandType
+
+      const command = (await import(`./commands/${file}`)).default
       if ('data' in command && 'execute' in command) {
         client.commands.set(command.data.name, command)
       } else {
@@ -52,7 +56,8 @@ client.on('ready', async () => {
     console.log('The bot is ready!')
 
     const commands = []
-    const command = require('./commands/update') as commandType
+    const command = (await import('./commands/update.js'))
+      .default as commandType
     commands.push(command.data)
 
     await rest.put(Routes.applicationCommands(client.application!.id), {

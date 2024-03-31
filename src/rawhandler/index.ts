@@ -1,17 +1,20 @@
 import puppeteer from 'puppeteer-extra'
 import download from 'download'
 import util from 'util'
-const exec = util.promisify(require('child_process').exec)
+const exec = util.promisify((await import('child_process')).exec)
 import fs from 'fs/promises'
 import path from 'path'
 import axios from 'axios'
+import { fileURLToPath } from 'url'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 export const waifu = path.resolve(__dirname)
-import { logIn, start } from './kakao'
+import { logIn, start } from './kakao/index.js'
 import randomstring from 'randomstring'
-import { redis } from '../redis'
+import { redis } from '../redis/index.js'
 import downloader from 'nodejs-file-downloader'
-import { getUrl, uploadFile } from '../b2'
-const { waifu: use_waifu } = require('../../config.json')
+import { getUrl, uploadFile } from '../b2/index.js'
+const use_waifu = JSON.parse(process.env.waifu!)
 
 async function handleChapter(
   images_array: string[],
@@ -515,23 +518,31 @@ async function buyAndUseTicket(
     }
   )
 
-  await axios.post(
-    'https://page.kakao.com/graphql',
-    getGQLQuery_readyToUseTicket(seriesId, productId),
-    {
-      headers: {
-        Cookie: cookies,
-        Referer: 'https://page.kakao.com/content',
-      },
-    }
-  )
+  try {
+    await axios.post(
+      'https://page.kakao.com/graphql',
+      getGQLQuery_readyToUseTicket(seriesId, productId),
+      {
+        headers: {
+          Cookie: cookies,
+          Referer: 'https://page.kakao.com/content',
+        },
+      }
+    )
+  } catch (error) {
+    console.log(error)
+  }
 
-  await axios.post(
-    'https://page.kakao.com/graphql',
-    getGQLQuery_useTicket(productId)
-  )
+  try {
+    await axios.post(
+      'https://page.kakao.com/graphql',
+      getGQLQuery_useTicket(productId)
+    )
 
-  console.log('Ticket bought and used! [V]')
+    console.log('Ticket bought and used! [V]')
+  } catch (error) {
+    console.log(error)
+  }
 }
 
 async function readyToUseTicket(
@@ -637,6 +648,7 @@ async function getSpecificChapter(
         return chapter_file
       } catch (error) {
         const tickets = await getTickets(seriesId, cookies)
+        console.log(tickets)
         if (tickets.tickets == 0) {
           await buyAndUseTicket(chapter.id, seriesId, cookies)
           const content = await getChapterContent(seriesId, chapter.id, cookies)
@@ -666,6 +678,7 @@ async function getSpecificChapter(
             }
           }
           const content = await getChapterContent(seriesId, chapter.id, cookies)
+
           if (content.files) {
             const chapter_file = await handleChapter(
               content.files,

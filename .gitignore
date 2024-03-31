@@ -12,3 +12,5 @@ config.json
 chapter-*
 reaper_config.json
 yugen_config.json
+.env
+dist

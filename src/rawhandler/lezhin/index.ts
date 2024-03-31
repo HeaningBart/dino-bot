@@ -3,40 +3,38 @@ import {
   getBoughtChapters,
   getEpisodeContent,
   getSeriesInfo,
-} from "./api";
-import { startup } from "./browser";
-import { handleChapter } from "..";
-const { waifu: use_waifu } = require("../../../config.json");
+} from './api.js'
+import { startup } from './browser.js'
+import { handleChapter } from '../index.js'
+const use_waifu = JSON.parse(process.env.waifu!)
 
 export async function getLezhinSpecificChapter(
   seriesSlug: string,
   chapter_number: string | number
 ) {
-  await startup();
-  console.log("Indo pegar as informações da série...");
-  const series = await getSeriesInfo(seriesSlug);
-  console.log("Informações obtidas!");
-  const chapters_list = series.episodes;
-  const chapter = chapters_list.find(
-    (chapter) => chapter.seq == chapter_number
-  );
-  const bought_chapters = await getBoughtChapters(series.id);
+  await startup()
+  console.log('Indo pegar as informações da série...')
+  const series = await getSeriesInfo(seriesSlug)
+  console.log('Informações obtidas!')
+  const chapters_list = series.episodes
+  const chapter = chapters_list.find((chapter) => chapter.seq == chapter_number)
+  const bought_chapters = await getBoughtChapters(series.id)
   if (chapter && !bought_chapters.includes(chapter.id)) {
-    await buyChapter(chapter);
+    await buyChapter(chapter)
   }
-  console.log(bought_chapters);
+  console.log(bought_chapters)
   if (chapter) {
-    const content = await getEpisodeContent(seriesSlug, chapter?.name);
+    const content = await getEpisodeContent(seriesSlug, chapter?.name)
     const chapter_url = await handleChapter(
       content,
       chapter_number.toString(),
       seriesSlug,
-      "",
+      '',
       use_waifu
-    );
-    return chapter_url;
+    )
+    return chapter_url
   } else {
-    ("Chapter wasnt found.");
+    ;('Chapter wasnt found.')
   }
 }
 
@@ -44,31 +42,31 @@ export async function getLezhinLatestChapter(
   seriesId: string,
   chapter_number: string | number
 ) {
-  await startup();
-  const series = await getSeriesInfo(seriesId);
-  const chapters_list = series.episodes;
+  await startup()
+  const series = await getSeriesInfo(seriesId)
+  const chapters_list = series.episodes
   const chapter = chapters_list.find(
     (chapter) => chapter.id == series.lastEpisodeId
-  );
-  const bought_chapters = await getBoughtChapters(series.id);
+  )
+  const bought_chapters = await getBoughtChapters(series.id)
   if (chapter && !bought_chapters.includes(chapter.id)) {
-    await buyChapter(chapter);
+    await buyChapter(chapter)
   }
-  console.log(bought_chapters);
+  console.log(bought_chapters)
   if (chapter) {
-    const content = await getEpisodeContent(seriesId, chapter?.name);
+    const content = await getEpisodeContent(seriesId, chapter?.name)
     const chapter_url = await handleChapter(
       content,
       chapter_number.toString(),
       seriesId,
-      "",
+      '',
       use_waifu
-    );
-    return chapter_url;
+    )
+    return chapter_url
   } else {
-    ("Chapter wasnt found.");
+    ;('Chapter wasnt found.')
   }
 }
 
-export * from "./api";
-export * from "./browser";
+export * from './api.js'
+export * from './browser.js'

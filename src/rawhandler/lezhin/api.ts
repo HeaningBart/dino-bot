@@ -1,7 +1,5 @@
 import axios from 'axios'
-import { redis } from '../../redis'
-import { startup } from './browser'
-import { handleChapter } from '..'
+import { redis } from '../../redis/index.js'
 
 const LezhingCDN = 'https://rcdn.lezhin.com/v2'
 
