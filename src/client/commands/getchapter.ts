@@ -72,7 +72,7 @@ module.exports = {
       where: { kakaoId: kakao_series_id },
     })
     if (series)
-      rawsQueue.add({
+      rawsQueue.add('raws', {
         kakaoId: series.kakaoId,
         channel_id: interaction.channelId,
         command: 'getchapter',
@@ -82,7 +82,7 @@ module.exports = {
         type,
       })
     if (!series)
-      rawsQueue.add({
+      rawsQueue.add('raws', {
         kakaoId: kakao_series_id,
         channel_id: interaction.channelId,
         command: 'getchapter',
