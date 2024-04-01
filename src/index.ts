@@ -2,7 +2,7 @@ import { Job } from 'bullmq'
 import { client } from './client/index.js'
 import { rawsQueue, worker, RawsPayload } from './queue/raws.js'
 
-rawsQueue.on('cleaned', async () => {
+worker.on('drained', async () => {
   client.user && client.user.setActivity(`I'm Heaning's creation.`)
 })
 

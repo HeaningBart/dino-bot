@@ -77,13 +77,19 @@ export default {
     const chapter_number = interaction.options.get('chapternumber', true)
       .value as number
     const type = interaction.options.get('type', true).value! as RawsWebsites
-    await rawsQueue.add('raws', {
-      kakaoId: kakao_series_id,
-      channel_id: interaction.channelId,
-      command: 'getchapter',
-      chapter_number: chapter_number.toString(),
-      type,
-    })
+    await rawsQueue.add(
+      'raws',
+      {
+        kakaoId: kakao_series_id,
+        channel_id: interaction.channelId,
+        command: 'getchapter',
+        chapter_number: chapter_number.toString(),
+        type,
+      },
+      {
+        jobId: `${kakao_series_id}-${chapter_number}`,
+      }
+    )
     return
   },
 }
