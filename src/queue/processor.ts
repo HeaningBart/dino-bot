@@ -24,7 +24,7 @@ export default async function (job: SandboxedJob<RawsPayload>) {
         : await getSpecificChapter(kakaoId, chapter_number!, kakaoId)
     if (chapter) {
       const channel = client.channels.cache.get(channel_id)
-      if (channel?.isText()) {
+      if (channel?.isTextBased()) {
         command === 'weekly'
           ? await channel.send(
               `Weekly chapter of ${series_title}, <@&${role_id}>, <@&946250134042329158>: ${chapter}`
@@ -40,7 +40,7 @@ export default async function (job: SandboxedJob<RawsPayload>) {
   if (type === 'lezhin') {
     const chapter = await getLezhinSpecificChapter(kakaoId, chapter_number!)
     const channel = client.channels.cache.get(channel_id)
-    if (channel?.isText()) {
+    if (channel?.isTextBased()) {
       command === 'weekly'
         ? await channel.send(
             `Chapter of ${series_title}, <@&${role_id}>, <@&946250134042329158>: ${chapter}`
@@ -55,7 +55,7 @@ export default async function (job: SandboxedJob<RawsPayload>) {
   if (type === 'ridi') {
     const chapter = await getRidiChapter(kakaoId, chapter_number!)
     const channel = client.channels.cache.get(channel_id)
-    if (channel?.isText()) {
+    if (channel?.isTextBased()) {
       command === 'weekly'
         ? await channel.send(
             `Chapter of ${series_title}, <@&${role_id}>, <@&946250134042329158>: ${chapter}`
@@ -70,7 +70,7 @@ export default async function (job: SandboxedJob<RawsPayload>) {
   if (type === 'boomtoon') {
     const chapter = await getBoomToonChapter(kakaoId, chapter_number!)
     const channel = client.channels.cache.get(channel_id)
-    if (channel?.isText()) {
+    if (channel?.isTextBased()) {
       command === 'weekly'
         ? await channel.send(
             `Chapter of ${series_title}, <@&${role_id}>, <@&946250134042329158>: ${chapter}`
