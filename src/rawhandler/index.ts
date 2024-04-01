@@ -171,6 +171,7 @@ const fetchChapters = async (
   seriesid: string | number,
   after: string = '0'
 ) => {
+  var cookies = await redis.get('kakao_cookies')
   const bodyData = {
     operationName: 'contentHomeProductList',
     query:
@@ -189,6 +190,7 @@ const fetchChapters = async (
     {
       headers: {
         Referer: 'https://page.kakao.com/content',
+        Cookie: cookies || '',
       },
     }
   )
