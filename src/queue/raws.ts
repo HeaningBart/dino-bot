@@ -6,9 +6,10 @@ const __dirname = path.dirname(__filename)
 
 export const rawsQueue = new Queue<RawsPayload>('bot_raws')
 const processorFile = pathToFileURL(__dirname + '/processor.js')
-console.log(processorFile)
 export const worker = new Worker('bot_raws', processorFile, {
   connection: {},
+  autorun: true,
+  concurrency: 1,
 })
 export type RawsPayload = {
   kakaoId: string
