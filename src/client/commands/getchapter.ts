@@ -54,7 +54,6 @@ export default {
     ),
   async execute(interaction: CommandInteraction) {
     const user = interaction.member?.user.id!
-    await interaction.deferReply()
     const isAllowed = await prisma.allowedUsers.findFirst({
       where: { user_id: user },
     })

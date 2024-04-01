@@ -72,8 +72,8 @@ console.log(token)
 
 client.on('interactionCreate', async (interaction) => {
   if (!interaction.isCommand()) return
-  await interaction.deferReply()
   try {
+    await interaction.deferReply()
     const command = client.commands.get(interaction.commandName)
     if (!command) {
       console.error(`No command matching ${interaction.commandName} was found.`)
