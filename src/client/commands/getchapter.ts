@@ -1,5 +1,17 @@
-import { SlashCommandBuilder } from '@discordjs/builders'
-import { CommandInteraction } from 'discord.js'
+import {
+  CommandInteraction,
+  REST,
+  Routes,
+  SlashCommandBuilder,
+} from 'discord.js'
+const token = process.env.token!
+import fs from 'fs/promises'
+import path from 'path'
+import { fileURLToPath } from 'url'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+const rest = new REST().setToken(token)
 
 import { prisma } from '../../database/index.js'
 import { rawsQueue } from '../../queue/raws.js'
@@ -38,13 +50,13 @@ export default {
         .setDescription(
           `Type of the series. Kakao / lezhing / pyccoma(not supported yet)`
         )
-        .addChoices([
-          ['kakao', 'kakao'],
-          ['lezhin', 'lezhin'],
-          ['pyccoma', 'pyccoma'],
-          ['ridi', 'ridi'],
-          ['boomtoon', 'boomtoon'],
-        ])
+        .addChoices(
+          { name: 'Kakao', value: 'kakao' },
+          { name: 'Lezhin', value: 'lezhin' },
+          { name: 'Pyccoma', value: 'pyccoma' },
+          { name: 'Ridi', value: 'ridi' },
+          { name: 'Boomtoon', value: 'boomtoon' }
+        )
     )
     .addIntegerOption((integer) =>
       integer
@@ -60,9 +72,11 @@ export default {
     if (!isAllowed) {
       return
     }
-    const kakao_series_id = interaction.options.getString('kakaoid')!
-    const chapter_number = interaction.options.getInteger('chapternumber')!
-    const type = interaction.options.getString('type')! as RawsWebsites
+    const kakao_series_id = interaction.options.get('kakaoid', true)
+      .value as string
+    const chapter_number = interaction.options.get('chapternumber', true)
+      .value as number
+    const type = interaction.options.get('type', true).value! as RawsWebsites
     await rawsQueue.add('raws', {
       kakaoId: kakao_series_id,
       channel_id: interaction.channelId,
