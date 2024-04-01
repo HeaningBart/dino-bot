@@ -204,8 +204,7 @@ export async function getChapterContent(chapter_id: string) {
 
 export async function getRidiChapter(
   series_id: string | number,
-  chapter_number: string | number,
-  updateProgress: (value: number | object) => Promise<void>
+  chapter_number: string | number
 ): Promise<string> {
   try {
     await logIn()

@@ -10,8 +10,7 @@ const use_waifu = JSON.parse(process.env.waifu!)
 
 export async function getLezhinSpecificChapter(
   seriesSlug: string,
-  chapter_number: string | number,
-  updateProgress: (number: number) => Promise<void>
+  chapter_number: string | number
 ) {
   await startup()
   console.log('Indo pegar as informações da série...')

@@ -21,12 +21,7 @@ export default async function (job: SandboxedJob<RawsPayload>) {
     const chapter =
       command === 'weekly'
         ? await getLatestChapter(kakaoId, series_title!)
-        : await getSpecificChapter(
-            kakaoId,
-            chapter_number!,
-            kakaoId,
-            job.updateProgress
-          )
+        : await getSpecificChapter(kakaoId, chapter_number!, kakaoId)
     if (chapter) {
       const channel = client.channels.cache.get(channel_id)
       if (channel?.isTextBased()) {
@@ -43,11 +38,7 @@ export default async function (job: SandboxedJob<RawsPayload>) {
     }
   }
   if (type === 'lezhin') {
-    const chapter = await getLezhinSpecificChapter(
-      kakaoId,
-      chapter_number!,
-      job.updateProgress
-    )
+    const chapter = await getLezhinSpecificChapter(kakaoId, chapter_number!)
     const channel = client.channels.cache.get(channel_id)
     if (channel?.isTextBased()) {
       command === 'weekly'
@@ -62,11 +53,7 @@ export default async function (job: SandboxedJob<RawsPayload>) {
     }
   }
   if (type === 'ridi') {
-    const chapter = await getRidiChapter(
-      kakaoId,
-      chapter_number!,
-      job.updateProgress
-    )
+    const chapter = await getRidiChapter(kakaoId, chapter_number!)
     const channel = client.channels.cache.get(channel_id)
     if (channel?.isTextBased()) {
       command === 'weekly'
@@ -81,11 +68,7 @@ export default async function (job: SandboxedJob<RawsPayload>) {
     }
   }
   if (type === 'boomtoon') {
-    const chapter = await getBoomToonChapter(
-      kakaoId,
-      chapter_number!,
-      job.updateProgress
-    )
+    const chapter = await getBoomToonChapter(kakaoId, chapter_number!)
     const channel = client.channels.cache.get(channel_id)
     if (channel?.isTextBased()) {
       command === 'weekly'

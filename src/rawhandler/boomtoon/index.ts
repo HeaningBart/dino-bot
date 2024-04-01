@@ -114,8 +114,7 @@ export async function get_chapter_data(
 
 export async function getBoomToonChapter(
   series_id: string | number,
-  chapter_number: string | number,
-  updateProgress: (value: number | object) => Promise<void>
+  chapter_number: string | number
 ) {
   try {
     await logIn()

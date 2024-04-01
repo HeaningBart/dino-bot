@@ -1,15 +1,16 @@
+import { Job } from 'bullmq'
 import { client } from './client/index.js'
-import { rawsQueue, worker } from './queue/raws.js'
+import { rawsQueue, worker, RawsPayload } from './queue/raws.js'
 
-rawsQueue.on('progress', async (job) => {
-  client.user &&
-    client.user.setActivity(
-      `Processing ${job.data.command} for ${job.data.kakaoId} - ${job.data.chapter_number} (${job.progress}%)`
-    )
+rawsQueue.on('cleaned', async () => {
+  client.user && client.user.setActivity(`I'm Heaning's creation.`)
 })
 
-worker.on('completed', async () => {
-  client.user && client.user.setActivity(`I'm Heaning's creation.`)
+worker.on('completed', async (job: Job<RawsPayload>) => {
+  client.user &&
+    client.user.setActivity(
+      `I finished chapter ${job.data.chapter_number} of ${job.data.kakaoId}!`
+    )
 })
 
 export { client }

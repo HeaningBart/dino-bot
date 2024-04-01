@@ -595,10 +595,8 @@ async function checkCookiesValidity(cookies: string) {
 async function getSpecificChapter(
   seriesId: string | number,
   chapter_number: string | number,
-  title: string | number,
-  updateProgress: (progress: number) => Promise<void>
+  title: string | number
 ) {
-  await updateProgress(10)
   var cookies = await redis.get('kakao_cookies')
   if (!cookies) {
     const browser = await start()
@@ -614,14 +612,12 @@ async function getSpecificChapter(
     await redis.set('kakao_cookies', cookies, 'EX', 259200)
   }
   const chapters = await getFullChaptersList(seriesId, 'desc')
-  await updateProgress(30)
   console.log(chapters.length)
   console.log(seriesId, chapter_number, title)
   console.log(chapters)
   const chapter = chapters.find(
     (chapter) => chapter.chapter_number == chapter_number
   )
-  await updateProgress(50)
   if (chapter) {
     if (chapter.bought) {
       const content_chapter = await getChapterContent(
@@ -629,7 +625,6 @@ async function getSpecificChapter(
         chapter.id,
         cookies
       )
-      await updateProgress(60)
       const chapter_file = await handleChapter(
         content_chapter.files,
         chapter.chapter_number.toString(),
@@ -637,15 +632,12 @@ async function getSpecificChapter(
         cookies,
         use_waifu
       )
-      await updateProgress(100)
       return chapter_file
     } else {
       const tickets = await getTickets(seriesId, cookies)
       tickets.tickets == 0 && (await buyTicket(seriesId, cookies))
-      await updateProgress(55)
       await readyToUseTicket(chapter.id, seriesId, cookies)
       await useTicket(chapter.id, cookies)
-      await updateProgress(60)
       const content = await getChapterContent(seriesId, chapter.id, cookies)
       if (content.files) {
         const chapter_file = await handleChapter(
@@ -655,7 +647,6 @@ async function getSpecificChapter(
           cookies,
           use_waifu
         )
-        await updateProgress(100)
         return chapter_file
       }
     }
