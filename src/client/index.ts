@@ -1,12 +1,11 @@
-import { SlashCommandBuilder } from '@discordjs/builders'
-import { REST } from '@discordjs/rest'
-import { Routes } from 'discord-api-types/v9'
 import {
   Client,
   Collection,
-  Intents,
-  MessageEmbed,
-  TextChannel,
+  GatewayIntentBits,
+  Events,
+  REST,
+  SlashCommandBuilder,
+  Routes,
 } from 'discord.js'
 const token = process.env.token!
 import fs from 'fs/promises'
@@ -24,15 +23,15 @@ type commandType = {
 
 const client = new Client({
   intents: [
-    Intents.FLAGS.GUILDS,
-    Intents.FLAGS.GUILD_MESSAGES,
-    Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions,
   ],
 }) as customClient
 
 client.commands = new Collection()
 
-const rest = new REST({ version: '9' }).setToken(token)
+const rest = new REST().setToken(token)
 
 client.on('ready', async () => {
   try {
@@ -70,7 +69,7 @@ client.on('ready', async () => {
 
 console.log(token)
 
-client.on('interactionCreate', async (interaction) => {
+client.on(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isCommand()) return
   try {
     await interaction.deferReply()
@@ -80,6 +79,7 @@ client.on('interactionCreate', async (interaction) => {
       return
     }
     await command.execute(interaction)
+    await interaction.editReply('Done!')
   } catch (error) {
     console.error(error)
     await interaction.reply({

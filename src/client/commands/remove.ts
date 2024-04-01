@@ -1,5 +1,17 @@
-import { SlashCommandBuilder } from '@discordjs/builders'
-import { CommandInteraction } from 'discord.js'
+import {
+  CommandInteraction,
+  REST,
+  Routes,
+  SlashCommandBuilder,
+} from 'discord.js'
+const token = process.env.token!
+import fs from 'fs/promises'
+import path from 'path'
+import { fileURLToPath } from 'url'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+const rest = new REST().setToken(token)
 import { prisma } from '../../database/index.js'
 
 const allowedUsers = [
@@ -15,7 +27,6 @@ export default {
   data: new SlashCommandBuilder()
     .setName('remove')
     .setDescription('Remove a series from our database')
-    .setDefaultPermission(true)
     .addStringOption((string) =>
       string
         .setName('kakaoid')
@@ -32,7 +43,7 @@ export default {
       await interaction.editReply(`You're not allowed to use this command.`)
       return
     }
-    const removed_id = interaction.options.getString('kakaoid')!
+    const removed_id = interaction.options.get('kakaoId')?.value! as string
     await prisma.series.deleteMany({ where: { kakaoId: removed_id } })
     await interaction.editReply('Series removed.')
     return

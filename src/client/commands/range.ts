@@ -1,5 +1,17 @@
-import { SlashCommandBuilder } from '@discordjs/builders'
-import { CommandInteraction } from 'discord.js'
+import {
+  CommandInteraction,
+  REST,
+  Routes,
+  SlashCommandBuilder,
+} from 'discord.js'
+const token = process.env.token!
+import fs from 'fs/promises'
+import path from 'path'
+import { fileURLToPath } from 'url'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+const rest = new REST().setToken(token)
 import { prisma } from '../../database/index.js'
 import {
   getChaptersList,
@@ -44,9 +56,10 @@ export default {
       await interaction.editReply(`You're not allowed to use this command.`)
       return
     }
-    const range_seriesid = interaction.options.getString('seriesid')!
-    const range_start = interaction.options.getNumber('start')!
-    const range_end = interaction.options.getNumber('end')!
+    const range_seriesid = interaction.options.get('seriesid', true)
+      .value as string
+    const range_start = interaction.options.get('start', true).value as number
+    const range_end = interaction.options.get('end', true).value as number
 
     for (let i = range_start; i <= range_end; i++) {
       await rawsQueue.add('range-chapter', {

@@ -58,37 +58,18 @@ export default {
       where: { user_id: user },
     })
     if (!isAllowed) {
-      await interaction.editReply(`You're not allowed to use this command.`)
       return
     }
     const kakao_series_id = interaction.options.getString('kakaoid')!
     const chapter_number = interaction.options.getInteger('chapternumber')!
-    const kakao_title = interaction.options.getString('seriestitle')!
     const type = interaction.options.getString('type')! as RawsWebsites
-    const series = await prisma.series.findFirst({
-      where: { kakaoId: kakao_series_id },
+    await rawsQueue.add('raws', {
+      kakaoId: kakao_series_id,
+      channel_id: interaction.channelId,
+      command: 'getchapter',
+      chapter_number: chapter_number.toString(),
+      type,
     })
-    if (series)
-      await rawsQueue.add('raws', {
-        kakaoId: series.kakaoId,
-        channel_id: interaction.channelId,
-        command: 'getchapter',
-        chapter_number: chapter_number.toString(),
-        role_id: series.role,
-        series_title: series.title,
-        type,
-      })
-    if (!series)
-      await rawsQueue.add('raws', {
-        kakaoId: kakao_series_id,
-        channel_id: interaction.channelId,
-        command: 'getchapter',
-        chapter_number: chapter_number.toString(),
-        type,
-      })
-    await interaction.editReply(
-      "Chapter added to the queue. It'll be sent in the channel in a few seconds/minutes."
-    )
     return
   },
 }

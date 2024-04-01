@@ -1,7 +1,9 @@
-import { SlashCommandBuilder } from '@discordjs/builders'
-import { REST } from '@discordjs/rest'
-import { Routes } from 'discord-api-types/rest'
-import { CommandInteraction } from 'discord.js'
+import {
+  CommandInteraction,
+  REST,
+  Routes,
+  SlashCommandBuilder,
+} from 'discord.js'
 const token = process.env.token!
 import fs from 'fs/promises'
 import path from 'path'
@@ -9,7 +11,7 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const rest = new REST({ version: '9' }).setToken(token)
+const rest = new REST().setToken(token)
 
 type commandType = {
   data: SlashCommandBuilder

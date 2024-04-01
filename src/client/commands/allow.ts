@@ -1,5 +1,17 @@
-import { SlashCommandBuilder } from '@discordjs/builders'
-import { CommandInteraction } from 'discord.js'
+import {
+  CommandInteraction,
+  REST,
+  Routes,
+  SlashCommandBuilder,
+} from 'discord.js'
+const token = process.env.token!
+import fs from 'fs/promises'
+import path from 'path'
+import { fileURLToPath } from 'url'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+const rest = new REST().setToken(token)
 import { toUrl } from '../../utils.js'
 import { prisma } from '../../database/index.js'
 
@@ -16,7 +28,6 @@ export default {
   data: new SlashCommandBuilder()
     .setName('allow')
     .setDescription('Allow an user to use the bot')
-    .setDefaultPermission(true)
     .addUserOption((user) =>
       user
         .setName('user')
