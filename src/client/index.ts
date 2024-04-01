@@ -69,10 +69,11 @@ client.on('ready', async () => {
 
 console.log(token)
 
-client.on(Events.InteractionCreate, async (interaction) => {
+client.once(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isCommand()) return
   try {
     await interaction.deferReply()
+    interaction
     const command = client.commands.get(interaction.commandName)
     if (!command) {
       console.error(`No command matching ${interaction.commandName} was found.`)
