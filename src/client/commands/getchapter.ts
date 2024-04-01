@@ -54,10 +54,10 @@ export default {
     ),
   async execute(interaction: CommandInteraction) {
     const user = interaction.member?.user.id!
+    await interaction.deferReply()
     const isAllowed = await prisma.allowedUsers.findFirst({
       where: { user_id: user },
     })
-
     if (!isAllowed) {
       await interaction.editReply(`You're not allowed to use this command.`)
       return
