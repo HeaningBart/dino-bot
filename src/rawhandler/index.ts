@@ -101,6 +101,7 @@ type chapter = {
   chapter_number: number
   series_id: string
   age_15: boolean
+  bought: boolean
 }
 
 type kakaoEdge = {
@@ -115,6 +116,9 @@ type kakaoEdge = {
       ageGrade: string
       thumbnail: string
       title: string
+    }
+    row3: {
+      badgeList: string[]
     }
   }
   __typename: string
@@ -156,6 +160,9 @@ function formatChapters(
       chapter_number: number ? number : index,
       series_id: seriesid as string,
       age_15: chapter.ageGrade == 'All' ? false : true,
+      bought: kakao_node.node.row3.badgeList.includes('LabelBadgeRent')
+        ? true
+        : false,
     }
   })
 }
@@ -394,7 +401,6 @@ function getGQLQuery_readyToUseTicket(
   productId: string | number
 ) {
   return {
-    operationName: 'readyToUseTicket',
     query:
       '\n    query readyToUseTicket($seriesId: Long!, $productId: Long!, $queryFrom: QueryFromPage!, $nonstopWatching: Boolean!, $pickExactly: Boolean!, $slideType: SlideType, $isFree: Boolean, $popupOn: Boolean!) {\n  readyToUseTicket(\n    seriesId: $seriesId\n    productId: $productId\n    from: $queryFrom\n    nonstopWatching: $nonstopWatching\n    pickExactly: $pickExactly\n    slideType: $slideType\n    isFree: $isFree\n    popupOn: $popupOn\n  ) {\n    process\n    nextProcess\n    series {\n      isWaitfree\n      waitfreeBlockCount\n    }\n    single {\n      readAccessType\n      title\n      waitfreeBlock\n      isDone\n    }\n    my {\n      cashAmount\n      ticketOwnCount\n      ticketRentalCount\n    }\n    available {\n      ticketOwnType\n      ticketRentalType\n    }\n    purchase {\n      ticketRental {\n        ticketId\n        ticketType\n        ticketKind\n        price\n      }\n      ticketOwn {\n        ticketId\n        ticketType\n        ticketKind\n        price\n      }\n    }\n    nextItem {\n      productId\n      isFree\n      slideType\n      ageGrade\n    }\n  }\n}\n    ',
     variables: {
@@ -406,23 +412,6 @@ function getGQLQuery_readyToUseTicket(
       queryFrom: 'ContentHome',
       seriesId,
       slideType: 'Comic',
-    },
-  }
-}
-
-function getGQLQuery_buyAndUseTicket(
-  productId: number | string,
-  seriesId: string | number
-) {
-  return {
-    operationName: 'BuyAndUseTicket',
-    query:
-      'mutation BuyAndUseTicket($input: TicketBuyAndUseMutationInput!) {\n  buyAndUseTicket(input: $input) {\n    buyTicketinfo\n    remainCash\n    __typename\n  }\n}\n',
-    variables: {
-      input: {
-        productId,
-        ticketId: `TKT020000000${seriesId}001`,
-      },
     },
   }
 }
@@ -606,95 +595,59 @@ async function getSpecificChapter(
   chapter_number: string | number,
   title: string | number
 ) {
-  try {
-    var cookies = await redis.get('kakao_cookies')
-
-    if (!cookies) {
-      const browser = await start()
-      cookies = await logIn(browser)
-      await browser.close()
-      await redis.set('kakao_cookies', cookies, 'EX', 259200)
-    }
-
-    const isValid = await checkCookiesValidity(cookies)
-
-    if (!isValid) {
-      const browser = await start()
-      cookies = await logIn(browser)
-      await browser.close()
-      await redis.set('kakao_cookies', cookies, 'EX', 259200)
-    }
-    const chapters = await getFullChaptersList(seriesId, 'desc')
-    console.log(chapters.length)
-    console.log(seriesId, chapter_number, title)
-    console.log(chapters)
-    const chapter = chapters.find(
-      (chapter) => chapter.chapter_number == chapter_number
-    )
-    if (chapter) {
-      try {
-        const content_chapter = await getChapterContent(
-          seriesId,
-          chapter.id,
-          cookies
-        )
+  var cookies = await redis.get('kakao_cookies')
+  if (!cookies) {
+    const browser = await start()
+    cookies = await logIn(browser)
+    await browser.close()
+    await redis.set('kakao_cookies', cookies, 'EX', 259200)
+  }
+  const isValid = await checkCookiesValidity(cookies)
+  if (!isValid) {
+    const browser = await start()
+    cookies = await logIn(browser)
+    await browser.close()
+    await redis.set('kakao_cookies', cookies, 'EX', 259200)
+  }
+  const chapters = await getFullChaptersList(seriesId, 'desc')
+  console.log(chapters.length)
+  console.log(seriesId, chapter_number, title)
+  console.log(chapters)
+  const chapter = chapters.find(
+    (chapter) => chapter.chapter_number == chapter_number
+  )
+  if (chapter) {
+    if (chapter.bought) {
+      const content_chapter = await getChapterContent(
+        seriesId,
+        chapter.id,
+        cookies
+      )
+      const chapter_file = await handleChapter(
+        content_chapter.files,
+        chapter.chapter_number.toString(),
+        title.toString(),
+        cookies,
+        use_waifu
+      )
+      return chapter_file
+    } else {
+      const tickets = await getTickets(seriesId, cookies)
+      tickets.tickets == 0 && (await buyTicket(seriesId, cookies))
+      await readyToUseTicket(chapter.id, seriesId, cookies)
+      await useTicket(chapter.id, cookies)
+      const content = await getChapterContent(seriesId, chapter.id, cookies)
+      if (content.files) {
         const chapter_file = await handleChapter(
-          content_chapter.files,
+          content.files,
           chapter.chapter_number.toString(),
           title.toString(),
           cookies,
           use_waifu
         )
         return chapter_file
-      } catch (error) {
-        const tickets = await getTickets(seriesId, cookies)
-        console.log(tickets)
-        if (tickets.tickets == 0) {
-          await buyAndUseTicket(chapter.id, seriesId, cookies)
-          const content = await getChapterContent(seriesId, chapter.id, cookies)
-          if (content.files) {
-            const chapter_file = await handleChapter(
-              content.files,
-              chapter.chapter_number.toString(),
-              title.toString(),
-              cookies,
-              use_waifu
-            )
-            return chapter_file
-          }
-        } else {
-          await readyToUseTicket(chapter.id, seriesId, cookies)
-          const useTicket_data = await useTicket(chapter.id, cookies)
-          if (
-            useTicket_data.data.errors &&
-            useTicket_data.data.errors.length > 0
-          ) {
-            try {
-              await readyToUseTicket(chapter.id, seriesId, cookies)
-              await buyAndUseTicket(chapter.id, seriesId, cookies)
-            } catch (error) {
-              await buyAndUseTicket(chapter.id, seriesId, cookies)
-              console.log(error)
-            }
-          }
-          const content = await getChapterContent(seriesId, chapter.id, cookies)
-
-          if (content.files) {
-            const chapter_file = await handleChapter(
-              content.files,
-              chapter.chapter_number.toString(),
-              title.toString(),
-              cookies,
-              use_waifu
-            )
-            return chapter_file
-          }
-        }
       }
     }
-  } catch (error: any) {
-    console.log('This is error')
-    console.log(error)
   }
 }
 
