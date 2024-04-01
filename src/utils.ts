@@ -11,7 +11,6 @@ export async function getWeeklyRaw(series: Series) {
     activities: [
       {
         name: `Getting raws of ${series.title}`,
-        type: 'WATCHING',
         url: 'https://reaperscans.com',
       },
     ],
@@ -43,7 +42,6 @@ export async function getWeeklyRaw(series: Series) {
     activities: [
       {
         name: `I'm Heaning's creation.`,
-        type: 'WATCHING',
         url: 'https://reaperscans.com',
       },
     ],
