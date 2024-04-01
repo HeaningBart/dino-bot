@@ -1,9 +1,16 @@
 import { Queue } from 'bullmq'
 import { Worker } from 'bullmq'
 import path from 'path'
+import { fileURLToPath, pathToFileURL } from 'url'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 export const rawsQueue = new Queue<RawsPayload>('bot_raws')
-const processorFile = path.join(__dirname, 'processor.js')
-export const worker = new Worker('bot_raws', processorFile)
+const processorFile = pathToFileURL(__dirname + '/processor.js')
+export const worker = new Worker('bot_raws', processorFile, {
+  connection: {},
+  autorun: true,
+  concurrency: 1,
+})
 export type RawsPayload = {
   kakaoId: string
   chapter_number?: string
