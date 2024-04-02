@@ -7,13 +7,9 @@ client.once('ready', async () => {
     client.user.setActivity(`Chapters on the queue: ${await rawsQueue.count()}`)
 })
 
-rawsQueue.on('waiting', async () => {
+worker.on('drained', async () => {
   client.user &&
     client.user.setActivity(`Chapters on the queue: ${await rawsQueue.count()}`)
-})
-
-worker.on('drained', async () => {
-  client.user && client.user.setActivity(`I'm Heaning's creation.`)
 })
 
 worker.on('completed', async (job: Job<RawsPayload>) => {
