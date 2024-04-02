@@ -1,6 +1,28 @@
 import { Job } from 'bullmq'
 import { client } from './client/index.js'
 import { rawsQueue, worker, RawsPayload } from './queue/raws.js'
+import { Events } from 'discord.js'
+
+client.on(Events.InteractionCreate, async (interaction) => {
+  if (!interaction.isChatInputCommand()) return
+  try {
+    await interaction.deferReply()
+    const command = client.commands.get(interaction.commandName)
+    console.log(command)
+    if (!command) {
+      console.error(`No command matching ${interaction.commandName} was found.`)
+      return
+    }
+    await command.execute(interaction)
+    await interaction.editReply('Chapter added to the queue!')
+  } catch (error) {
+    console.error(error)
+    await interaction.reply({
+      content: 'There was an error while executing this command!',
+      ephemeral: true,
+    })
+  }
+})
 
 client.once('ready', async () => {
   client.user &&

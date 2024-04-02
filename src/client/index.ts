@@ -67,28 +67,6 @@ client.on('ready', async () => {
   }
 })
 
-console.log(token)
-
-client.once(Events.InteractionCreate, async (interaction) => {
-  if (!interaction.isCommand()) return
-  try {
-    await interaction.deferReply()
-    const command = client.commands.get(interaction.commandName)
-    if (!command) {
-      console.error(`No command matching ${interaction.commandName} was found.`)
-      return
-    }
-    await command.execute(interaction)
-    await interaction.editReply('Done!')
-  } catch (error) {
-    console.error(error)
-    await interaction.reply({
-      content: 'There was an error while executing this command!',
-      ephemeral: true,
-    })
-  }
-})
-
 client.login(token)
 
 export { client }

@@ -3,6 +3,7 @@ import {
   REST,
   Routes,
   SlashCommandBuilder,
+  ChatInputCommandInteraction,
 } from 'discord.js'
 const token = process.env.token!
 import fs from 'fs/promises'
@@ -64,7 +65,7 @@ export default {
         .setRequired(true)
         .setDescription(`Chapter's number`)
     ),
-  async execute(interaction: CommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction) {
     const user = interaction.member?.user.id!
     const isAllowed = await prisma.allowedUsers.findFirst({
       where: { user_id: user },
@@ -72,11 +73,9 @@ export default {
     if (!isAllowed) {
       return
     }
-    const kakao_series_id = interaction.options.get('kakaoid', true)
-      .value as string
-    const chapter_number = interaction.options.get('chapternumber', true)
-      .value as number
-    const type = interaction.options.get('type', true).value! as RawsWebsites
+    const kakao_series_id = interaction.options.getString('kakaoid', true)
+    const chapter_number = interaction.options.getNumber('chapternumber', true)
+    const type = interaction.options.getString('type', true) as RawsWebsites
     await rawsQueue.add(
       'raws',
       {
