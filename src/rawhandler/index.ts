@@ -599,7 +599,6 @@ async function getSpecificChapter(
   title: string | number
 ) {
   var cookies = await redis.get('kakao_cookies')
-  await rawsQueue.updateJobProgress(`${seriesId}-${chapter_number}`, 10)
   if (!cookies) {
     const browser = await start()
     cookies = await logIn(browser)
@@ -613,7 +612,6 @@ async function getSpecificChapter(
     await browser.close()
     await redis.set('kakao_cookies', cookies, 'EX', 259200)
   }
-  await rawsQueue.updateJobProgress(`${seriesId}-${chapter_number}`, 20)
 
   const chapters = await getFullChaptersList(seriesId, 'desc')
   console.log(chapters.length)
@@ -622,7 +620,6 @@ async function getSpecificChapter(
   const chapter = chapters.find(
     (chapter) => chapter.chapter_number == chapter_number
   )
-  await rawsQueue.updateJobProgress(`${seriesId}-${chapter_number}`, 30)
   if (chapter) {
     if (chapter.bought) {
       const content_chapter = await getChapterContent(
@@ -630,7 +627,6 @@ async function getSpecificChapter(
         chapter.id,
         cookies
       )
-      await rawsQueue.updateJobProgress(`${seriesId}-${chapter_number}`, 70)
       const chapter_file = await handleChapter(
         content_chapter.files,
         chapter.chapter_number.toString(),
@@ -638,7 +634,6 @@ async function getSpecificChapter(
         cookies,
         use_waifu
       )
-      await rawsQueue.updateJobProgress(`${seriesId}-${chapter_number}`, 100)
       return chapter_file
     } else {
       const tickets = await getTickets(seriesId, cookies)
@@ -646,7 +641,6 @@ async function getSpecificChapter(
       await readyToUseTicket(chapter.id, seriesId, cookies)
       await useTicket(chapter.id, cookies)
       const content = await getChapterContent(seriesId, chapter.id, cookies)
-      await rawsQueue.updateJobProgress(`${seriesId}-${chapter_number}`, 70)
       if (content.files) {
         const chapter_file = await handleChapter(
           content.files,
@@ -655,7 +649,7 @@ async function getSpecificChapter(
           cookies,
           use_waifu
         )
-        await rawsQueue.updateJobProgress(`${seriesId}-${chapter_number}`, 100)
+
         return chapter_file
       }
     }
