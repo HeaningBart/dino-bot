@@ -69,7 +69,7 @@ client.on('ready', async () => {
 
 console.log(token)
 
-client.on(Events.InteractionCreate, async (interaction) => {
+client.once(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isCommand()) return
   try {
     await interaction.deferReply()
