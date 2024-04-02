@@ -31,7 +31,6 @@ export default {
   data: new SlashCommandBuilder()
     .setName('getchapter')
     .setDescription('Download a chapter with the number specified.')
-    .setDefaultPermission(true)
     .addStringOption((string) =>
       string
         .setName('kakaoid')
@@ -74,7 +73,7 @@ export default {
       return
     }
     const kakao_series_id = interaction.options.getString('kakaoid', true)
-    const chapter_number = interaction.options.getNumber('chapternumber', true)
+    const chapter_number = interaction.options.getInteger('chapternumber', true)
     const type = interaction.options.getString('type', true) as RawsWebsites
     await rawsQueue.add(
       'raws',
