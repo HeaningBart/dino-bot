@@ -35,7 +35,9 @@ export async function logIn() {
   await page.type('input[type="text"]', username)
   await page.type('input[type="password"]', pwd)
   await page.click('button[type="submit"]')
-  await page.waitForNavigation()
+  try {
+    await page.waitForNavigation()
+  } catch (error) {}
   const cookies = await page.cookies()
   await redis.set(
     'ridi',
