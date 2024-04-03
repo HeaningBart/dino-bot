@@ -29,21 +29,23 @@ export async function start() {
 }
 
 export async function logIn() {
-  const browser = await start()
-  const page = await browser.newPage()
-  await page.goto('https://ridibooks.com/account/login')
-  await page.type('input[type="text"]', username)
-  await page.type('input[type="password"]', pwd)
-  await page.click('button[type="submit"]')
-  try {
-    await page.waitForNavigation()
-  } catch (error) {}
-  const cookies = await page.cookies()
+  const auth = await axios.post<RidiAuth>(
+    'https://account.ridibooks.com/oauth2/token',
+    {
+      auto_login: true,
+      client_id: 'ePgbKKRyPvdAFzTvFg2DvrS7GenfstHdkQ2uvFNd',
+      grant_type: 'password',
+      password: pwd,
+      username: username,
+    }
+  )
+
+  console.log(auth.data)
+
   await redis.set(
     'ridi',
-    cookies.map((cookie) => `${cookie.name}=${cookie.value}`).join('; ')
+    `ridi-at=${auth.data.access_token}; ridi-rt=${auth.data.refresh_token}; ruid=df9ac9f6-ruid-4e7a-bd44-c056c0e2340a; pvid=f4aa1232-pvid-4150-900e-f13caac03c94`
   )
-  await browser.close()
 }
 
 type RidiChapter = {
