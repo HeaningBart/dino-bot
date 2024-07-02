@@ -35,10 +35,17 @@ worker.on('drained', async () => {
 })
 
 worker.on('completed', async (job: Job<RawsPayload>) => {
-  client.user &&
-    client.user.setActivity(
-      `I finished chapter ${job.data.chapter_number} of ${job.data.kakaoId}!`
-    )
+  const { channel_id } = job.data
+  const chapter = job.returnvalue
+  if (chapter) {
+    const channel = client.channels.cache.get(channel_id)
+    if (channel?.isTextBased()) {
+      await channel.send(`Chapter: ${chapter}`)
+      await channel.send(
+        `Don't forget to report your progress in <#794058643624034334> after you are done with your part.`
+      )
+    }
+  }
 })
 
 worker.on('progress', async (job: Job<RawsPayload>) => {

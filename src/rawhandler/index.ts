@@ -190,8 +190,11 @@ const fetchChapters = async (
     bodyData,
     {
       headers: {
-        Referer: 'https://page.kakao.com/content',
+        Referer: 'https://page.kakao.com/content/' + seriesid,
+        Origin: 'https://page.kakao.com',
         Cookie: cookies || '',
+        'Content-Type': 'application/json',
+        'User-Agent': 'insomnia/9.1.0',
       },
     }
   )
@@ -436,6 +439,7 @@ async function getDeviceCookie(auth_cookies: string) {
       headers: {
         Cookie: auth_cookies,
         Referer: 'https://page.kakao.com/content',
+        'User-Agent': 'insomnia/9.1.0',
       },
     }
   )
@@ -450,6 +454,7 @@ async function getTickets(seriesId: string | number, cookies: string) {
       headers: {
         Cookie: cookies,
         Referer: 'https://page.kakao.com/content',
+        'User-Agent': 'insomnia/9.1.0',
       },
     }
   )
@@ -469,6 +474,7 @@ async function buyTicket(seriesId: number | string, cookies: string) {
       headers: {
         Cookie: cookies,
         Referer: 'https://page.kakao.com/content',
+        'User-Agent': 'insomnia/9.1.0',
       },
     }
   )
@@ -485,6 +491,7 @@ async function useTicket(productId: number | string, cookies: string) {
       headers: {
         Cookie: cookies,
         Referer: 'https://page.kakao.com/content',
+        'User-Agent': 'insomnia/9.1.0',
       },
     }
   )
@@ -506,6 +513,7 @@ async function buyAndUseTicket(
       headers: {
         Cookie: cookies,
         Referer: 'https://page.kakao.com/content',
+        'User-Agent': 'insomnia/9.1.0',
       },
     }
   )
@@ -518,6 +526,7 @@ async function buyAndUseTicket(
         headers: {
           Cookie: cookies,
           Referer: 'https://page.kakao.com/content',
+          'User-Agent': 'insomnia/9.1.0',
         },
       }
     )
@@ -528,7 +537,15 @@ async function buyAndUseTicket(
   try {
     await axios.post(
       'https://page.kakao.com/graphql',
-      getGQLQuery_useTicket(productId)
+      getGQLQuery_useTicket(productId),
+
+      {
+        headers: {
+          Cookie: cookies,
+          Referer: 'https://page.kakao.com/content',
+          'User-Agent': 'insomnia/9.1.0',
+        },
+      }
     )
 
     console.log('Ticket bought and used! [V]')
@@ -550,6 +567,7 @@ async function readyToUseTicket(
       headers: {
         Cookie: cookies,
         Referer: 'https://page.kakao.com/content',
+        'User-Agent': 'insomnia/9.1.0',
       },
     }
   )
@@ -572,6 +590,7 @@ async function getChapterContent(
       headers: {
         Cookie: cookies,
         Referer: 'https://page.kakao.com/content',
+        'User-Agent': 'insomnia/9.1.0',
       },
     }
   )
@@ -603,16 +622,8 @@ async function getSpecificChapter(
     const browser = await start()
     cookies = await logIn(browser)
     await browser.close()
-    await redis.set('kakao_cookies', cookies, 'EX', 259200)
+    await redis.set('kakao_cookies', cookies, 'EX', 3600)
   }
-  const isValid = await checkCookiesValidity(cookies)
-  if (!isValid) {
-    const browser = await start()
-    cookies = await logIn(browser)
-    await browser.close()
-    await redis.set('kakao_cookies', cookies, 'EX', 259200)
-  }
-
   const chapters = await getFullChaptersList(seriesId, 'desc')
   console.log(chapters.length)
   console.log(seriesId, chapter_number, title)

@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "concurrently \"pnpm run watch-compile\" \"pnpm run watch-dev\"",
     "watch-compile": "swc src -w --out-dir dist",
-    "watch-dev": "nodemon --watch \"dist/**/*\" -e js ./dist/src/index.js",
+    "watch-dev": "nodemon --watch \"dist/**/*\" -e js -r dotenv/config ./dist/src/index.js",
     "build": "swc src -d dist",
-    "start": "node dist/server.js"
+    "start": "node dist/src/index.js"
   },
   "keywords": [],
   "author": "",
@@ -48,6 +48,7 @@
     "tsc": "^2.0.4"
   },
   "devDependencies": {
+    "@swc-node/register": "^1.10.0",
     "@swc/cli": "^0.3.10",
     "@swc/core": "^1.4.11",
     "@types/bull": "^4.10.0",
