@@ -41,22 +41,43 @@ export async function logIn(browser: Browser) {
   console.log('Logging in...')
 
   await page.waitForNavigation()
-  console.log(page.url())
-  await page.goto('https://www.lezhin.com/ko')
+
+  const bearer_token = await page.evaluate((): string => {
+    //@ts-ignore
+    const { token } = __LZ_CONFIG__
+    return token
+  })
+
+  const user_id = await page.evaluate((): string => {
+    //@ts-ignore
+    const { userId } = __LZ_ME__
+    return userId
+  })
+
+  await redis.set('lezhin_id', user_id)
+
+  await redis.set('lezhin_bearer', bearer_token)
+
+  try {
+    await page.goto('https://www.lezhin.com/ko/adult')
+    await page.click('button#btn-yes')
+    await page.waitForNavigation()
+  } catch (error) {}
 
   const cookies = await page.cookies()
   const new_cookies = cookies.map((item) => `${item.name}=${item.value};`)
   const filtered_cookies = new_cookies.join(' ')
 
-  await redis.set('lezhin_cookies', filtered_cookies, 'EX', 60 * 60 * 24)
-
-  console.log(filtered_cookies)
+  await redis.set('lezhin_cookies', filtered_cookies)
 
   console.log('Cookies are set.')
+
+  return bearer_token
 }
 
 export async function startup() {
   const cookies = await redis.get('lezhin_cookies')
+  console.log(cookies)
   if (cookies !== null) return
   const browser = await start()
   await logIn(browser)
