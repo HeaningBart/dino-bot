@@ -76,10 +76,15 @@ export async function logIn(browser: Browser) {
 }
 
 export async function startup() {
+  const bearer_token = await redis.get('lezhin_bearer')
+
+  const user_id = await redis.get('lezhin_id')
+
   const cookies = await redis.get('lezhin_cookies')
-  console.log(cookies)
-  if (cookies !== null) return
-  const browser = await start()
-  await logIn(browser)
-  await browser.close()
+
+  if (!bearer_token || !user_id || !cookies) {
+    const browser = await start()
+    await logIn(browser)
+    await browser.close()
+  }
 }
