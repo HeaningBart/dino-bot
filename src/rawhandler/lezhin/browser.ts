@@ -57,7 +57,7 @@ export async function logIn(browser: Browser) {
 
 export async function startup() {
   const cookies = await redis.get('lezhin_cookies')
-  if (cookies) return
+  if (cookies !== null) return
   const browser = await start()
   await logIn(browser)
   await browser.close()
