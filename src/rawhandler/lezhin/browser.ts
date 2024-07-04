@@ -40,9 +40,11 @@ export async function logIn(browser: Browser) {
 
   console.log('Logging in...')
 
-  await page.waitForNavigation()
+  try {
+    await page.waitForNavigation()
 
-  await page.waitForTimeout(3000)
+    await page.waitForTimeout(3000)
+  } catch (error) {}
 
   const bearer_token = await page.evaluate((): string => {
     //@ts-ignore
