@@ -39,10 +39,13 @@ export async function logIn(browser: Browser) {
   try {
     setTimeout(async () => await page.click("button[type='submit']"), 1000)
     console.log('Logging in...')
-    await page.waitForNavigation()
   } catch (error) {
     console.log(error)
   }
+  await page.waitForTimeout(5000)
+  try {
+    await page.goto('https://www.lezhin.com/ko/comic/iwantto')
+  } catch (error) {}
 
   const bearer_token = await page.evaluate((): string => {
     //@ts-ignore
@@ -61,12 +64,6 @@ export async function logIn(browser: Browser) {
   await redis.set('lezhin_id', user_id)
 
   await redis.set('lezhin_bearer', bearer_token)
-
-  try {
-    await page.goto('https://www.lezhin.com/ko/adult')
-    await page.click('button#btn-yes')
-    await page.waitForNavigation()
-  } catch (error) {}
 
   const cookies = await page.cookies()
   const new_cookies = cookies.map((item) => `${item.name}=${item.value};`)
