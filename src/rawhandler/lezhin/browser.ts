@@ -36,11 +36,13 @@ export async function logIn(browser: Browser) {
   await page.type('input#login-password', password)
   await page.click('input[name="remember_me"]')
 
-  setTimeout(async () => await page.click("button[type='submit']"), 1000)
+  await page.click("button[type='submit']")
 
   console.log('Logging in...')
 
   await page.waitForNavigation()
+
+  await page.waitForTimeout(3000)
 
   const bearer_token = await page.evaluate((): string => {
     //@ts-ignore
