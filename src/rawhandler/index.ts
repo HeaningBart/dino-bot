@@ -407,17 +407,10 @@ function getGQLQuery_readyToUseTicket(
   productId: string | number
 ) {
   return {
-    query:
-      '\n    query readyToUseTicket($seriesId: Long!, $productId: Long!, $queryFrom: QueryFromPage!, $nonstopWatching: Boolean!, $pickExactly: Boolean!, $slideType: SlideType, $isFree: Boolean, $popupOn: Boolean!) {\n  readyToUseTicket(\n    seriesId: $seriesId\n    productId: $productId\n    from: $queryFrom\n    nonstopWatching: $nonstopWatching\n    pickExactly: $pickExactly\n    slideType: $slideType\n    isFree: $isFree\n    popupOn: $popupOn\n  ) {\n    process\n    nextProcess\n    series {\n      isWaitfree\n      waitfreeBlockCount\n    }\n    single {\n      readAccessType\n      title\n      waitfreeBlock\n      isDone\n    }\n    my {\n      cashAmount\n      ticketOwnCount\n      ticketRentalCount\n    }\n    available {\n      ticketOwnType\n      ticketRentalType\n    }\n    purchase {\n      ticketRental {\n        ticketId\n        ticketType\n        ticketKind\n        price\n      }\n      ticketOwn {\n        ticketId\n        ticketType\n        ticketKind\n        price\n      }\n    }\n    nextItem {\n      productId\n      isFree\n      slideType\n      ageGrade\n    }\n  }\n}\n    ',
+    query:'\n    query readyToUseTicket($seriesId: Long!, $productId: Long!) {\n  readyToUseTicket(seriesId: $seriesId, productId: $productId) {\n    series {\n      isWaitfree\n      waitfreeBlockCount\n      saleMethod\n    }\n    single {\n      readAccessType\n      title\n      waitfreeBlock\n      isDone\n    }\n    my {\n      cashAmount\n      ticketOwnCount\n      ticketRentalCount\n    }\n    available {\n      ticketOwnType\n      ticketRentalType\n    }\n    purchase {\n      ticketRental {\n        ticketId\n        ticketType\n        ticketKind\n        price\n        discountPrice\n      }\n      ticketOwn {\n        ticketId\n        ticketType\n        ticketKind\n        price\n        discountPrice\n      }\n    }\n    nextItem {\n      productId\n      isFree\n      slideType\n      ageGrade\n    }\n  }\n}\n    ',
     variables: {
-      isFree: false,
-      nonstopWatching: false,
-      pickExactly: false,
-      popupOn: false,
       productId,
-      queryFrom: 'ContentHome',
       seriesId,
-      slideType: 'Comic',
     },
   }
 }
